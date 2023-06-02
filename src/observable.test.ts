@@ -7,44 +7,44 @@ describe("observable-tests", () => {
     });
 
     it("can accept no initializing value", () => {
-      let x = observe();
+      let x = observe("x");
       expect(typeof x).toBe("function");
       expect(x()).toBe(undefined);
     }); 
     
     it("can accept a number", () => {
-      let x = observe(1);
+      let x = observe("x1", 1);
       expect(typeof x).toBe("function");
       expect(x()).toBe(1);
     });
 
     it("can accept a string", () => {
-      let x = observe("test");
+      let x = observe("x2", "test");
       expect(typeof x).toBe("function");
       expect(x()).toBe("test");
     });
 
     it("can accept a boolean", () => {
-      let x = observe(false);
+      let x = observe("x3", false);
       expect(typeof x).toBe("function");
       expect(x()).toBe(false);
     });
 
     it("can accept an array", () => {
-      let x = observe([]);
+      let x = observe("x4", []);
       expect(typeof x).toBe("function");
       expect(x()).toEqual([]);
     });
 
     it("can accept an object", () => {
-      let x = observe({});
+      let x = observe("x5", {});
       expect(typeof x).toBe("function");
       expect(x()).toEqual({});
     });
   });
   
   describe("an observe value", () => {
-    const x = observe(10);
+    const x = observe("x6", 10);
     it("can be observed by passing in a function", done => {
       const stop = x((val: number, oldVal: number) => {
         expect(val).toBe(11);
@@ -63,7 +63,7 @@ describe("observable-tests", () => {
     });
 
     it("can see a change in an object", done => {
-      const y = observe({ "a": 1 });
+      const y = observe("y", { "a": 1 });
       const stop = y((val: any, oldVal: any) => {
         expect(val.a).toBe(2);
         expect(oldVal.a).toBe(1);
@@ -87,13 +87,13 @@ describe("observable-tests", () => {
     });
 
     it("can see when nothing changed in the object", () => {
-      const y = observe({ a: 1 });
+      const y = observe("y", { a: 1 });
       expect(y({})).toBe(false);
       expect(y({ a: 1 })).toBe(false);
     });
 
     it("can see a change in an array", done => {
-      const y = observe([1,2,3]);
+      const y = observe("y2", [1,2,3]);
       const stop = y((val: any, oldVal: any) => {
         expect(val).toEqual([]);
         expect(oldVal).toEqual([1,2,3]);

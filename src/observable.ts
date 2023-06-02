@@ -163,11 +163,14 @@ interface Observer {
 
 class Observable {
 
+  name: string;
+
   value: undefined | observableType;
 
   observers: Observer[];
 
-  constructor(observable: undefined | observableType) {
+  constructor(name: string, observable: undefined | observableType) {
+    this.name = name;
     this.value = observable;
     this.observers = [];
   }
@@ -247,17 +250,39 @@ class Observable {
   
 }
 
-export default function observe(initialValue?: observableType) {
-  const observed = new Observable(initialValue);
-  return (newValue?: Function | observableType) => {
+const observables: Observable[] = [];
+
+function getObservable(name, initialValue?: observableType) {
+  let observable = observables.find(o => o.name === name);
+  if (initialValue !== undefined) {
+    observable?.set(initialValue);
+  }
+  if (!observable) {
+    observable = new Observable(name, initialValue);
+    observables.push(observable);
+  }
+
+  return observable;
+}
+
+
+export default function observe(name: string, initialValue?: observableType) {
+  const observable = getObservable(name, initialValue);
+  const observe = (newValue?: Function | observableType) => {
     if (is.undef(newValue)) {
-      return observed.get() as observableType;
+      return observable.get() as observableType;
     }
 
     if (typeof newValue === "function") {
-      return observed.observe(newValue) as Function;
+      return observable.observe(newValue) as Function;
     }
 
-    return observed.set(newValue as observableType);
+    return observable.set(newValue as observableType);
   };
+
+  return observe;
+}
+
+export function destroy(observable: Function) {
+
 }
