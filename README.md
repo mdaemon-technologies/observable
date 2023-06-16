@@ -27,33 +27,33 @@ You can use observe to keep track of a value from multiple contexts
 ```javascript
 
     // observeTheseValues.js
-    const observedNumber = observe(20);
+    const observedNumber = observe("numberName", 20);
     export observedNumber;
 
     // note that objects are clones, so this object will not be changed by changes to the observedObject
     const obj = {};
-    const observedObject = observe(obj);
+    const observedObject = observe("objectName", obj);
     export observedObject;
 
-    const observedArray = observe([]);
+    const observedArray = observe("arrayName", []);
     export observedArray;
 
-    const observedBoolean = observe(true);
+    const observedBoolean = observe("boolName", true);
     export observedBoolean;
 
-    const observedString = observe("test");
+    const observedString = observe("stringName","test");
     export observedString;
 
     // index.js
     import { observedNumber, observedObject, observedArray, observedBoolean, observedString } from "observeTheseValues.js";
     // change the value and return changed true/false
-    let changed = observedNumber.set(30);
+    let changed = observedNumber(30);
     console.log(changed); // true
 
-    console.log(observedNumber.set(30)); // false
+    console.log(observedNumber(30)); // false
     
     // get the value
-    console.log(observedNumber.get() === 30); // true
+    console.log(observedNumber() === 30); // true
 
     // watch for value changes
     const stopObservingValue = observedNumber.observe((newValue, oldValue) => {
@@ -63,7 +63,7 @@ You can use observe to keep track of a value from multiple contexts
     });
 
     // change the value for observation
-    observedNumber.set(3);
+    observedNumber(3);
     // new 3
     // old 30
     // false
@@ -72,19 +72,27 @@ You can use observe to keep track of a value from multiple contexts
     stopObservingValue();
 
     // change the value again
-    observedNumber.set(60); // nothing logged
+    observedNumber(60); // nothing logged
 
     // observe also finds changes that are part of objects
     const stopObservingObject = observedObject((newValue, oldValue) => {
       console.log("new", newValue);
     });
 
-    console.log(observedObject.set({ test: 10 })); // true
+    console.log(observedObject({ test: 10 })); // true
     // { test: 10 }
 
     // to remove a property from an object, set it to undefined
-    observedObject.set({ test: undefined });
+    observedObject({ test: undefined });
     // { }
 
 
+    // other.js
+    // from 2.0 you can also get an already observed value using the name of the value passed to the original
+    import observe from "observable";
+
+    const str = observe("stringName");
+
+    console.log(str()); // "test"
+    
 ```
