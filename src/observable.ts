@@ -265,7 +265,6 @@ function getObservable(name, initialValue?: observableType) {
   return observable;
 }
 
-
 export default function observe(name: string, initialValue?: observableType) {
   const observable = getObservable(name, initialValue);
   const observe = (newValue?: Function | observableType) => {
@@ -281,8 +280,4 @@ export default function observe(name: string, initialValue?: observableType) {
   };
 
   return observe;
-}
-
-export function destroy(observable: Function) {
-
 }

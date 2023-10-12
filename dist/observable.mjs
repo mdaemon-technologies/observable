@@ -120,7 +120,8 @@ var deepEqual = function (a, b) {
     return false;
 };
 var Observable = /** @class */ (function () {
-    function Observable(observable) {
+    function Observable(name, observable) {
+        this.name = name;
         this.value = observable;
         this.observers = [];
     }
@@ -188,17 +189,30 @@ var Observable = /** @class */ (function () {
     };
     return Observable;
 }());
-function observe(initialValue) {
-    var observed = new Observable(initialValue);
-    return function (newValue) {
+var observables = [];
+function getObservable(name, initialValue) {
+    var observable = observables.find(function (o) { return o.name === name; });
+    if (initialValue !== undefined) {
+        observable === null || observable === void 0 ? void 0 : observable.set(initialValue);
+    }
+    if (!observable) {
+        observable = new Observable(name, initialValue);
+        observables.push(observable);
+    }
+    return observable;
+}
+function observe(name, initialValue) {
+    var observable = getObservable(name, initialValue);
+    var observe = function (newValue) {
         if (is.undef(newValue)) {
-            return observed.get();
+            return observable.get();
         }
         if (typeof newValue === "function") {
-            return observed.observe(newValue);
+            return observable.observe(newValue);
         }
-        return observed.set(newValue);
+        return observable.set(newValue);
     };
+    return observe;
 }
 
 export { observe as default };
