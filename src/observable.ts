@@ -195,13 +195,13 @@ class Observable {
     if (sameType) {
       let changed = false;
       let oldValue = clone(this.value);
-      if (is.object(this.value)) {
-        changed = updateProps(this.value, newValue);
-      } 
-      else if (Array.isArray(this.value)) {
+      if (Array.isArray(this.value)) {
         changed = !deepEqual(this.value, newValue);
         this.value = clone(newValue);
       }
+      else if (is.object(this.value)) {
+        changed = updateProps(this.value, newValue);
+      } 
       else {
         changed = this.value !== newValue;
         this.value = newValue;

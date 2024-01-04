@@ -56,7 +56,7 @@ You can use observe to keep track of a value from multiple contexts
     console.log(observedNumber() === 30); // true
 
     // watch for value changes
-    const stopObservingValue = observedNumber.observe((newValue, oldValue) => {
+    const stopObservingValue = observedNumber((newValue, oldValue) => {
       console.log("new", newValue);
       console.log("old", oldValue);
       console.log(newValue === oldValue);
