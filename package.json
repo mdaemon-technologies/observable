@@ -1,6 +1,6 @@
 {
   "name": "@mdaemon/observable",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "type": "module",
   "description": "A function for creating an observable object, array, boolean, string, or number.",
   "main": "dist/observable.cjs",
@@ -14,7 +14,8 @@
     "test": "jest",
     "dev-test": "jest --watchAll",
     "build": "rollup -c",
-    "dev": "rollup -c -w"
+    "dev": "rollup -c -w",
+    "pub": "npm run build && npm run test && npm publish"
   },
   "repository": {
     "type": "git",
