@@ -1,5 +1,4 @@
 import typescript from "@rollup/plugin-typescript"
-import commonjs from "@rollup/plugin-typescript"
 
 export default [
   {
@@ -10,8 +9,7 @@ export default [
       format: "umd"
     },
     plugins: [
-      typescript(),
-      commonjs()
+      typescript()
     ]
   },
   {
