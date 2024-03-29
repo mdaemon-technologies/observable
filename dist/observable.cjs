@@ -122,14 +122,6 @@ var deepEqual = function (a, b) {
     return false;
 };
 /**
- * Class representing an observable value that can be observed by
- * registering callback functions. Allows observing value changes.
- *
- * Has methods for getting/setting the value, registering observers,
- * and notifying observers when the value changes. Stores observers
- * in an array.
- */
-/**
  * Constructor for the Observable class.
  *
  * Initializes an Observable instance with the given name and initial value.

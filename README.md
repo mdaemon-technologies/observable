@@ -9,17 +9,17 @@ The `observable` function provides methods for setting, getting, observing, and 
 
     $ npm install @mdaemon/observable --save
 
-# Node CommonJS #
+## Node CommonJS ##
 ```javascript
     const observe = require("@mdaemon/observable/dist/observable.cjs");
 ```
 
-# Node Modules #
+## Node Modules ##
 ```javascript
     import observe from "@mdaemon/observable/dist/observable.mjs";
 ```
 
-# Web #
+## Web ##
 ```HTML
     <script type="text/javascript" src="/path_to_modules/dist/observable.umd.js">
 ```
@@ -28,6 +28,7 @@ The `observable` function provides methods for setting, getting, observing, and 
 
 You can use observe to keep track of a value from multiple contexts
 ```javascript
+    import observe from "@mdaemon/observerable/dist/observable.mjs";
 
     // observeTheseValues.js
     const observedNumber = observe("numberName", 20);
@@ -46,9 +47,16 @@ You can use observe to keep track of a value from multiple contexts
 
     const observedString = observe("stringName","test");
     export observedString;
+```
 
+```javascript
     // index.js
-    import { observedNumber, observedObject, observedArray, observedBoolean, observedString } from "observeTheseValues.js";
+    import { 
+        observedNumber, observedObject, 
+        observedArray, observedBoolean, 
+        observedString 
+    } from "observeTheseValues.js";
+    
     // change the value and return changed true/false
     let changed = observedNumber(30);
     console.log(changed); // true
