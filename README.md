@@ -27,6 +27,7 @@ The `observable` function provides methods for setting, getting, observing, and 
 ### observe ###
 
 You can use observe to keep track of a value from multiple contexts
+#### Export observables ####
 ```javascript
     import observe from "@mdaemon/observerable/dist/observable.mjs";
 
@@ -49,6 +50,8 @@ You can use observe to keep track of a value from multiple contexts
     export observedString;
 ```
 
+
+#### Import observables ####
 ```javascript
     // index.js
     import { 
@@ -56,7 +59,7 @@ You can use observe to keep track of a value from multiple contexts
         observedArray, observedBoolean, 
         observedString 
     } from "observeTheseValues.js";
-    
+
     // change the value and return changed true/false
     let changed = observedNumber(30);
     console.log(changed); // true
@@ -97,10 +100,7 @@ You can use observe to keep track of a value from multiple contexts
     observedObject({ test: undefined });
     // { }
 
-
-    // other.js
     // from 2.0 you can also get an already observed value using the name of the value passed to the original
-    import observe from "observable";
 
     const str = observe("stringName");
 
