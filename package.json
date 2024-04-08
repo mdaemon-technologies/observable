@@ -1,6 +1,6 @@
 {
   "name": "@mdaemon/observable",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "type": "module",
   "description": "A function for creating an observable object, array, boolean, string, or number.",
   "main": "dist/observable.cjs",
@@ -24,7 +24,10 @@
   "keywords": [
     "observable",
     "emitter",
-    "watch"
+    "watch",
+    "emitter",
+    "observer",
+    "watcher"
   ],
   "author": {
     "name": "MDaemon Technologies, Ltd.",
