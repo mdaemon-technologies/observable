@@ -3,9 +3,10 @@
   "version": "2.0.6",
   "type": "module",
   "description": "A function for creating an observable object, array, boolean, string, or number.",
-  "main": "dist/observable.cjs",
+  "main": "dist/observable.umd.js",
   "module": "dist/observable.mjs",
   "browser": "dist/observable.umd.js",
+  "common": "dist/observable.cjs",
   "typings": "dist/index.d.ts",
   "publishConfig": {
     "access": "public"
