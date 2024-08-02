@@ -29,7 +29,7 @@ The `observable` function provides methods for setting, getting, observing, and 
 You can use observe to keep track of a value from multiple contexts
 #### Export observables ####
 ```javascript
-    import observe from "@mdaemon/observerable/dist/observable.mjs";
+    import observe from "@mdaemon/observable/dist/observable.mjs";
 
     // observeTheseValues.js
     const observedNumber = observe("numberName", 20);
@@ -110,7 +110,7 @@ You can use observe to keep track of a value from multiple contexts
 
 # License #
 
-Published under the [LGPL-2.1 license](https://github.com/mdaemon-technologies/validate/blob/main/LICENSE "LGPL-2.1 License").
+Published under the [LGPL-2.1 license](https://github.com/mdaemon-technologies/observable/blob/main/LICENSE "LGPL-2.1 License").
 
 Published by<br/> 
 <b>MDaemon Technologies, Ltd.<br/>
