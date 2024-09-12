@@ -87,7 +87,7 @@ const clone = (val: observableType): observableType => {
   }
   
   if (Array.isArray(val)) {
-    const newVal: observableType = val.map((item: any) => {
+    const newVal: observableType = val.map((item: observableType) => {
       return clone(item);
     });
 

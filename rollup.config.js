@@ -1,4 +1,5 @@
 import typescript from "@rollup/plugin-typescript"
+import terser from '@rollup/plugin-terser';
 
 export default [
   {
@@ -6,11 +7,12 @@ export default [
     output: [
       {
         file: "dist/observable.umd.js", format: "umd", name: "observable", exports: "default" },
-      { file: "dist/observable.cjs", format: "cjs", exports: "default" },
-      { file: "dist/observable.mjs", format: "es" }
+      { file: "dist/observable.cjs", format: "cjs", name: "observable", exports: "default" },
+      { file: "dist/observable.mjs", format: "es", name: "observable" }
     ],
     plugins: [
-      typescript()
+      typescript(),
+      terser()
     ]
   }
 ]
