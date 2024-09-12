@@ -1,40 +1,38 @@
-function getUuid() {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (
-    char
-  ) {
-    var rand = (Math.random() * 16) | 0,
+function getUuid(): string {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char: string) => {
+    const rand: number = (Math.random() * 16) | 0,
       val = char === "x" ? rand : (rand & 0x3) | 0x8;
     return val.toString(16);
   });
 }
 
-const is = (function () {
-  const obj = (a: any) => {
-    return typeof a === "object" && a !== null && !Array.isArray(a);
+const is = (() => {
+  const obj = <T>(value: T): boolean => {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
   };
 
-  const num = (a: any) => {
-    return typeof a === "number";
+  const num = <T>(value: T): boolean => {
+    return typeof value === "number";
   };
 
-  const str = (a: any) => {
-    return typeof a === "string";
+  const str = <T>(value: T): boolean => {
+    return typeof value === "string";
   };
 
-  const arr = (a: any) => {
-    return Array.isArray(a);
+  const arr = <T>(value: T): boolean => {
+    return Array.isArray(value);
   };
 
-  const undef = (a: any) => {
-    return typeof a === "undefined";
+  const undef = <T>(value: T): boolean => {
+    return typeof value === "undefined";
   };
 
-  const func = (a: any) => {
-    return typeof a === "function";
+  const func = <T>(value: T): boolean => {
+    return typeof value === "function";
   };
 
-  const bool = (a: any) => {
-    return typeof a === "boolean";
+  const bool = <T>(value: T): boolean => {
+    return typeof value === "boolean";
   };
 
   return {
@@ -44,22 +42,22 @@ const is = (function () {
     array: arr,
     undef,
     func,
-    bool
+    bool,
   };
-}());
+})();
 
-const updateProps = (a: any, b: any) => {
+const updateProps = (a: observableType, b: observableType): boolean => {
   let changed = false;
   if (!is.object(a) || !is.object(b)) {
     return false;
   }
   
-  Object.keys(b).forEach(prop => {
+  Object.keys(b).forEach((prop: string) => {
     if (is.object(a[prop])) {
       changed = updateProps(a[prop], b[prop]);
     }
     else if (is.array(a[prop]) && is.array(b[prop])) {
-      for (var i = 0, iMax = b[prop].length; i < iMax; i++) {
+      for (let i = 0, iMax = b[prop].length; i < iMax; i++) {
         if (is.object(a[prop][i])) {
           changed = updateProps(a[prop][i], b[prop][i]);
         }
@@ -78,42 +76,38 @@ const updateProps = (a: any, b: any) => {
   return changed;
 };
 
-const clone = (val: any): any => {
+const clone = (val: observableType): observableType => {
   if (is.object(val)) {
-    const newVal = {};
+    const newVal: observableType = {};
     Object.keys(val).forEach((key) => {
       newVal[key] = clone(val[key]);
     });
 
-    return newVal;
+    return newVal as observableType;
   }
   
-  if (is.array(val)) {
-    const newVal = val.map((item: any) => {
+  if (Array.isArray(val)) {
+    const newVal: observableType = val.map((item: any) => {
       return clone(item);
     });
 
-    return newVal;
+    return newVal as observableType;
   }
 
   return val;
 };
 
-const deepEqual = (a: any, b: any) => {
+const deepEqual = (a: observableType, b: observableType): boolean => {
   if (typeof a !== typeof b) {
     return false;
   }
 
-  if (is.string(a) && is.string(b)) {
+  if (is.string(a) || is.number(a) || is.bool(a)) {
     return a === b;
   }
 
-  if (is.number(a) && is.number(b)) {
-    return a === b;
-  }
-
-  if (is.bool(a) && is.bool(b)) {
-    return a === b;
+  if ((Array.isArray(a) && !Array.isArray(b)) || (!Array.isArray(a) && Array.isArray(b))) {
+    return false;
   }
 
   if (Array.isArray(a) && Array.isArray(b)) {
@@ -201,7 +195,7 @@ class Observable {
  * @returns The current value of the observable. Returns a clone of the internal value to prevent mutation.
  */
   get(): undefined | observableType {
-    return clone(this.value);
+    return typeof this.value === "undefined" ? undefined : clone(this.value);
   }
 
   /**
@@ -217,7 +211,7 @@ class Observable {
  * @returns True if the value changed, false otherwise.
  */
   set(newValue: observableType): boolean {
-    if (is.undef(this.value)) {
+    if (typeof this.value === "undefined") {
       this.value = clone(newValue);
       this.changed(undefined);
       return true;
