@@ -108,6 +108,19 @@ You can use observe to keep track of a value from multiple contexts
     
 ```
 
+### Destroying an Observable ###
+
+You can destroy an observable instance by passing a special string to the observe function. This will remove the observable from the internal list, allowing it to be garbage collected if there are no other references to it.
+
+```javascript
+    // Destroy the observable instance
+    str("destroy-observable-stringName");
+
+    // Attempting to get the value of the destroyed observable will now return undefined
+    const str = observe("stringName");
+    console.log(str()); // undefined
+```
+
 # License #
 
 Published under the [LGPL-2.1 license](https://github.com/mdaemon-technologies/observable/blob/main/LICENSE "LGPL-2.1 License").

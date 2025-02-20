@@ -1,73 +1,46 @@
 function getUuid(): string {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char: string) => {
-    const rand: number = (Math.random() * 16) | 0,
-      val = char === "x" ? rand : (rand & 0x3) | 0x8;
+  const template = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
+  return template.replace(/[xy]/g, (char: string) => {
+    const rand: number = (Math.random() * 16) | 0;
+    const val = char === "x" ? rand : (rand & 0x3) | 0x8;
     return val.toString(16);
   });
 }
 
 const is = (() => {
-  const obj = <T>(value: T): boolean => {
-    return typeof value === "object" && value !== null && !Array.isArray(value);
-  };
-
-  const num = <T>(value: T): boolean => {
-    return typeof value === "number";
-  };
-
-  const str = <T>(value: T): boolean => {
-    return typeof value === "string";
-  };
-
-  const arr = <T>(value: T): boolean => {
-    return Array.isArray(value);
-  };
-
-  const undef = <T>(value: T): boolean => {
-    return typeof value === "undefined";
-  };
-
-  const func = <T>(value: T): boolean => {
-    return typeof value === "function";
-  };
-
-  const bool = <T>(value: T): boolean => {
-    return typeof value === "boolean";
-  };
+  const isType = <T>(value: T, type: string): boolean => typeof value === type;
 
   return {
-    object: obj,
-    number: num,
-    string: str,
-    array: arr,
-    undef,
-    func,
-    bool,
+    object: <T>(value: T): boolean => isType(value, "object") && value !== null && !Array.isArray(value),
+    number: <T>(value: T): boolean => isType(value, "number"),
+    string: <T>(value: T): boolean => isType(value, "string"),
+    array: <T>(value: T): boolean => Array.isArray(value),
+    undef: <T>(value: T): boolean => isType(value, "undefined"),
+    func: <T>(value: T): boolean => isType(value, "function"),
+    bool: <T>(value: T): boolean => isType(value, "boolean"),
   };
 })();
 
+const isSameType = (a: observableType, b: observableType): boolean => {
+  return (
+    (is.array(a) && is.array(b)) ||
+    (is.object(a) && is.object(b)) ||
+    (is.number(a) && is.number(b)) ||
+    (is.string(a) && is.string(b)) ||
+    (is.bool(a) && is.bool(b))
+  );
+};
+
 const updateProps = (a: observableType, b: observableType): boolean => {
+  if (!is.object(a) || !is.object(b)) return false;
+
   let changed = false;
-  if (!is.object(a) || !is.object(b)) {
-    return false;
-  }
-  
   Object.keys(b).forEach((prop: string) => {
     if (is.object(a[prop])) {
       changed = updateProps(a[prop], b[prop]);
-    }
-    else if (is.array(a[prop]) && is.array(b[prop])) {
-      for (let i = 0, iMax = b[prop].length; i < iMax; i++) {
-        if (is.object(a[prop][i])) {
-          changed = updateProps(a[prop][i], b[prop][i]);
-        }
-        else if (a[prop][i] !== b[prop][i]) {
-          a[prop][i] = b[prop][i];
-          changed = true;
-        }
-      }
-    }
-    else if (a[prop] !== b[prop]) {
+    } else if (is.array(a[prop]) && is.array(b[prop])) {
+      changed = updateArrayProps(a[prop], b[prop]);
+    } else if (a[prop] !== b[prop]) {
       a[prop] = b[prop];
       changed = true;
     }
@@ -76,72 +49,58 @@ const updateProps = (a: observableType, b: observableType): boolean => {
   return changed;
 };
 
+const updateArrayProps = (a: observableType[], b: observableType[]): boolean => {
+  let changed = false;
+  for (let i = 0, iMax = b.length; i < iMax; i++) {
+    if (is.object(a[i])) {
+      changed = updateProps(a[i], b[i]);
+    } else if (a[i] !== b[i]) {
+      a[i] = b[i];
+      changed = true;
+    }
+  }
+  return changed;
+};
+
 const clone = (val: observableType): observableType => {
   if (is.object(val)) {
     const newVal: observableType = {};
-    Object.keys(val).forEach((key) => {
-      newVal[key] = clone(val[key]);
-    });
-
+    for (const key in val as any) {
+      if (Object.prototype.hasOwnProperty.call(val, key)) {
+        newVal[key] = clone(val[key]);
+      }
+    }
     return newVal as observableType;
   }
-  
-  if (Array.isArray(val)) {
-    const newVal: observableType = val.map((item: observableType) => {
-      return clone(item);
-    });
 
-    return newVal as observableType;
+  if (Array.isArray(val)) {
+    return val.map((item: observableType) => clone(item)) as observableType;
   }
 
   return val;
 };
 
-const deepEqual = (a: observableType, b: observableType): boolean => {
-  if (typeof a !== typeof b) {
-    return false;
-  }
+const deepEqual = (a: observableType, b: observableType, memo = new WeakMap()): boolean => {
+  if (a === b) return true;
+  if (typeof a !== typeof b) return false;
 
-  if (is.string(a) || is.number(a) || is.bool(a)) {
-    return a === b;
-  }
+  if (Array.isArray(a) && Array.isArray(b)) return arraysEqual(a, b, memo);
 
-  if ((Array.isArray(a) && !Array.isArray(b)) || (!Array.isArray(a) && Array.isArray(b))) {
-    return false;
-  }
-
-  if (Array.isArray(a) && Array.isArray(b)) {
-    if (a.length !== b.length) {
-      return false;
-    }
-
-    let i = a.length;
-    while (i--) {
-      if (!deepEqual(a[i], b[i])) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  if (is.object(a) && is.object(b)) {
-    if (Object.keys(a).join("") !== Object.keys(b).join("")) {
-      return false;
-    }
-
-    let keys = Object.keys(a);
-    let i = keys.length;
-    while (i--) {
-      if (!deepEqual(a[keys[i]], b[keys[i]])) {
-        return false;
-      }
-    }
-
-    return true;
-  }
+  if (is.object(a) && is.object(b)) return objectsEqual(a as UnknownKeys, b as UnknownKeys, memo);
 
   return false;
+};
+
+const arraysEqual = (a: observableType[], b: observableType[], memo: WeakMap<object, any>): boolean => {
+  if (a.length !== b.length) return false;
+  return a.every((item, index) => deepEqual(item, b[index]), memo);
+};
+
+const objectsEqual = (a: UnknownKeys, b: UnknownKeys, memo: WeakMap<object, any>): boolean => {
+  const aKeys = Object.keys(a);
+  const bKeys = Object.keys(b);
+  if (aKeys.length !== bKeys.length) return false;
+  return aKeys.every((key) => deepEqual(a[key], b[key]), memo);
 };
 
 /**
@@ -217,29 +176,20 @@ class Observable {
       return true;
     }
 
-    const sameType = (is.array(newValue) && is.array(this.value)) ||
-      (is.object(newValue) && is.object(this.value)) ||
-      (is.number(newValue) && is.number(this.value)) ||
-      (is.string(newValue) && is.string(this.value)) ||
-      (is.bool(newValue)) && is.bool(this.value);
-
+    const sameType = isSameType(newValue, this.value);
     if (sameType) {
       let changed = false;
-      let oldValue = clone(this.value);
-      if (Array.isArray(this.value)) {
+      const oldValue = clone(this.value);
+      if (is.array(this.value)) {
         changed = !deepEqual(this.value, newValue);
         this.value = clone(newValue);
-      }
-      else if (is.object(this.value)) {
+      } else if (is.object(this.value)) {
         changed = updateProps(this.value, newValue);
-      }
-      else {
+      } else {
         changed = this.value !== newValue;
         this.value = newValue;
       }
-      if (changed) {
-        this.changed(oldValue);
-      }
+      if (changed) this.changed(oldValue);
       return changed;
     }
 
@@ -335,6 +285,14 @@ export default function observe(name: string, initialValue?: observableType) {
   const observe = (newValue?: Function | observableType) => {
     if (is.undef(newValue)) {
       return observable.get() as observableType;
+    }
+
+    if (newValue === "destroy-observable-" + name) {
+      const index = observables.indexOf(observable);
+      if (index > -1) {
+        observables.splice(index, 1);
+      }
+      return;
     }
 
     if (typeof newValue === "function") {
