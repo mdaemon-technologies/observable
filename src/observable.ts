@@ -31,17 +31,23 @@ const isSameType = (a: observableType, b: observableType): boolean => {
   );
 };
 
-const updateProps = (a: observableType, b: observableType): boolean => {
+const updateProps = (a: observableType, b: observableType, seen = new WeakSet()): boolean => {
   if (!is.object(a) || !is.object(b)) return false;
 
+  // Handle circular references
+  if (seen.has(a as object)) return false;
+  seen.add(a as object);
+
   let changed = false;
-  Object.keys(b).forEach((prop: string) => {
-    if (is.object(a[prop])) {
-      changed = updateProps(a[prop], b[prop]);
-    } else if (is.array(a[prop]) && is.array(b[prop])) {
-      changed = updateArrayProps(a[prop], b[prop]);
-    } else if (a[prop] !== b[prop]) {
-      a[prop] = b[prop];
+  const aObj = a as UnknownKeys;
+  const bObj = b as UnknownKeys;
+  Object.keys(bObj).forEach((prop: string) => {
+    if (is.object(aObj[prop])) {
+      if (updateProps(aObj[prop], bObj[prop], seen)) changed = true;
+    } else if (is.array(aObj[prop]) && is.array(bObj[prop])) {
+      if (updateArrayProps(aObj[prop] as observableType[], bObj[prop] as observableType[], seen)) changed = true;
+    } else if (aObj[prop] !== bObj[prop]) {
+      aObj[prop] = bObj[prop];
       changed = true;
     }
   });
@@ -49,11 +55,15 @@ const updateProps = (a: observableType, b: observableType): boolean => {
   return changed;
 };
 
-const updateArrayProps = (a: observableType[], b: observableType[]): boolean => {
+const updateArrayProps = (a: observableType[], b: observableType[], seen = new WeakSet()): boolean => {
+  // Handle circular references
+  if (seen.has(a)) return false;
+  seen.add(a);
+
   let changed = false;
   for (let i = 0, iMax = b.length; i < iMax; i++) {
     if (is.object(a[i])) {
-      changed = updateProps(a[i], b[i]);
+      if (updateProps(a[i], b[i], seen)) changed = true;
     } else if (a[i] !== b[i]) {
       a[i] = b[i];
       changed = true;
@@ -62,19 +72,33 @@ const updateArrayProps = (a: observableType[], b: observableType[]): boolean => 
   return changed;
 };
 
-const clone = (val: observableType): observableType => {
+const clone = (val: observableType, seen = new WeakMap()): observableType => {
   if (is.object(val)) {
-    const newVal: observableType = {};
-    for (const key in val as any) {
+    // Handle circular references
+    if (seen.has(val as object)) {
+      return seen.get(val as object);
+    }
+    const newVal: UnknownKeys = {};
+    seen.set(val as object, newVal);
+    for (const key in val as UnknownKeys) {
       if (Object.prototype.hasOwnProperty.call(val, key)) {
-        newVal[key] = clone(val[key]);
+        newVal[key] = clone((val as UnknownKeys)[key], seen);
       }
     }
     return newVal as observableType;
   }
 
   if (Array.isArray(val)) {
-    return val.map((item: observableType) => clone(item)) as observableType;
+    // Handle circular references
+    if (seen.has(val)) {
+      return seen.get(val);
+    }
+    const newArr: observableType[] = [];
+    seen.set(val, newArr);
+    for (const item of val) {
+      newArr.push(clone(item, seen));
+    }
+    return newArr as observableType;
   }
 
   return val;
@@ -83,6 +107,13 @@ const clone = (val: observableType): observableType => {
 const deepEqual = (a: observableType, b: observableType, memo = new WeakMap()): boolean => {
   if (a === b) return true;
   if (typeof a !== typeof b) return false;
+
+  // Handle circular references - if we've seen this pair, assume equal to break cycle
+  if (is.object(a) || is.array(a)) {
+    const seen = memo.get(a as object);
+    if (seen === b) return true;
+    memo.set(a as object, b);
+  }
 
   if (Array.isArray(a) && Array.isArray(b)) return arraysEqual(a, b, memo);
 
@@ -93,14 +124,14 @@ const deepEqual = (a: observableType, b: observableType, memo = new WeakMap()): 
 
 const arraysEqual = (a: observableType[], b: observableType[], memo: WeakMap<object, any>): boolean => {
   if (a.length !== b.length) return false;
-  return a.every((item, index) => deepEqual(item, b[index]), memo);
+  return a.every((item, index) => deepEqual(item, b[index], memo));
 };
 
 const objectsEqual = (a: UnknownKeys, b: UnknownKeys, memo: WeakMap<object, any>): boolean => {
   const aKeys = Object.keys(a);
   const bKeys = Object.keys(b);
   if (aKeys.length !== bKeys.length) return false;
-  return aKeys.every((key) => deepEqual(a[key], b[key]), memo);
+  return aKeys.every((key) => deepEqual(a[key], b[key], memo));
 };
 
 /**
@@ -259,7 +290,7 @@ const observables: Observable[] = [];
  * @param initialValue - Optional initial value to set.
  * @returns The Observable instance.
  */
-function getObservable(name, initialValue?: observableType) {
+function getObservable(name: string, initialValue?: observableType) {
   let observable = observables.find(o => o.name === name);
   if (initialValue !== undefined) {
     observable?.set(initialValue);

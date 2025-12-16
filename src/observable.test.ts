@@ -111,6 +111,22 @@ describe("observable-tests", () => {
 
       y([{test: 1}, {test: 2}]);
     });
+
+    it("handles circular references without infinite recursion", () => {
+      const circular: any = { a: 1 };
+      circular.self = circular;
+
+      const y = observe("circularTest", { x: 1 });
+      
+      // Should not throw or hang when comparing circular structures
+      const result = y(circular);
+      expect(result).toBe(true);
+
+      // Setting the same circular reference again should detect no change
+      const circular2: any = { a: 1 };
+      circular2.self = circular2;
+      expect(y(circular2)).toBe(false);
+    });
   });
 
 

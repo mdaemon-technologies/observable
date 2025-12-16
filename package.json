@@ -1,6 +1,6 @@
 {
   "name": "@mdaemon/observable",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "type": "module",
   "description": "A function for creating an observable object, array, boolean, string, or number.",
   "main": "dist/observable.umd.js",
