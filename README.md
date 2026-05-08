@@ -136,6 +136,10 @@ You can destroy an observable instance by passing a special string to the observ
 
 Published under the [LGPL-2.1 license](https://github.com/mdaemon-technologies/observable/blob/main/LICENSE "LGPL-2.1 License").
 
+# Changelog #
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
+
 Published by<br/> 
 <b>MDaemon Technologies, Ltd.<br/>
 Simple Secure Email</b><br/>
