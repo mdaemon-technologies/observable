@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es2015",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "rootDir": "./src",
+    "strict": true,
+    "types": [],
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts", "node_modules"]
+}
