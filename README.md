@@ -1,4 +1,4 @@
-[![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmdaemon-technologies%2Fobservable%2Fmaster%2Fpackage.json&query=%24.version&prefix=v&label=npm&color=blue)](https://www.npmjs.com/package/@mdaemon/observable) [![Static Badge](https://img.shields.io/badge/node-v19%2B-blue?style=flat&label=node&color=blue)](https://nodejs.org)
+[![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmdaemon-technologies%2Fobservable%2Fmaster%2Fpackage.json&query=%24.version&prefix=v&label=npm&color=blue)](https://www.npmjs.com/package/@mdaemon/observable) [![Static Badge](https://img.shields.io/badge/node-v18%2B-blue?style=flat&label=node&color=blue)](https://nodejs.org)
  [![install size](https://packagephobia.com/badge?p=@mdaemon/observable)](https://packagephobia.com/result?p=@mdaemon/observable) [![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmdaemon-technologies%2Fobservable%2Fmaster%2Fpackage.json&query=%24.license&prefix=v&label=license&color=green)](https://github.com/mdaemon-technologies/observable/blob/master/LICENSE) [![Node.js CI](https://github.com/mdaemon-technologies/observable/actions/workflows/node.js.yml/badge.svg)](https://github.com/mdaemon-technologies/observable/actions/workflows/node.js.yml)
 
 # @mdaemon/observable, A function for observing values
@@ -11,7 +11,7 @@ The `observable` function provides methods for setting, getting, observing, and 
 
 ## Node.js (CommonJS) ##
 ```javascript
-    // Default entry — resolves via the "main" field in package.json
+    // Resolves via the "exports" field in package.json
     const observe = require("@mdaemon/observable");
 
     // Or load the explicit CJS build
@@ -20,11 +20,14 @@ The `observable` function provides methods for setting, getting, observing, and 
 
 ## Node.js / Bundler (ES Modules) ##
 ```javascript
+    import observe from "@mdaemon/observable";
+
+    // Or load the explicit ESM build
     import observe from "@mdaemon/observable/dist/observable.mjs";
 ```
 
-> **Note:** Bundlers (Rollup, webpack, Vite, etc.) automatically resolve the `module` field in
-> `package.json` and will use the ESM build when you `import` from `@mdaemon/observable`.
+> **Note:** Bundlers (Rollup, webpack, Vite, etc.) and Node.js resolve the `exports` field in
+> `package.json` and will use the appropriate build automatically.
 
 ## Browser (UMD) ##
 ```HTML

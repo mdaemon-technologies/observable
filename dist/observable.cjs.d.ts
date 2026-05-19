@@ -1,1 +1,2 @@
-declare module '@mdaemon/observable/dist/observable.cjs';
+import observe from '@mdaemon/observable';
+export = observe;

@@ -1,1 +1,2 @@
-declare module '@mdaemon/observable/dist/observable.umd.js';
+import observe from '@mdaemon/observable';
+export = observe;

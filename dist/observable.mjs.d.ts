@@ -1,1 +1,1 @@
-declare module '@mdaemon/observable/dist/observable.mjs';
+export { default, observableType, UnknownKeys, ObserverCallback, ObservableFunction } from '@mdaemon/observable';
