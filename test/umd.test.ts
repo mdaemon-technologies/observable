@@ -52,5 +52,29 @@ describe("UMD format (dist/observable.umd.js)", () => {
     stop();
     expect(called).toBe(false);
   });
-});
 
+  it("exposes once and immediate options", () => {
+    const x = observe("umd-opts", 1) as Function;
+    const seen: number[] = [];
+
+    x((val: number) => { seen.push(val); }, { immediate: true, once: true });
+    x(2);
+    x(3);
+
+    expect(seen).toEqual([1]);
+  });
+
+  it("exposes registry statics", () => {
+    const registry = (observe as any).createRegistry();
+
+    registry("umd-scoped", "inner");
+
+    expect(typeof (observe as any).has).toBe("function");
+    expect(typeof (observe as any).names).toBe("function");
+    expect(typeof (observe as any).destroy).toBe("function");
+    expect(registry.has("umd-scoped")).toBe(true);
+    expect((observe as any).has("umd-scoped")).toBe(false);
+    expect(registry.names()).toEqual(["umd-scoped"]);
+    expect(registry.destroy("umd-scoped")).toBe(true);
+  });
+});

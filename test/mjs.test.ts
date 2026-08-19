@@ -43,4 +43,29 @@ describe("MJS format (dist/observable.mjs)", () => {
     stop();
     expect(called).toBe(false);
   });
+
+  it("exposes once and immediate options", () => {
+    const x = observe("mjs-opts", 1) as Function;
+    const seen: number[] = [];
+
+    x((val: number) => { seen.push(val); }, { immediate: true, once: true });
+    x(2);
+    x(3);
+
+    expect(seen).toEqual([1]);
+  });
+
+  it("exposes registry statics", () => {
+    const registry = (observe as any).createRegistry();
+
+    registry("mjs-scoped", "inner");
+
+    expect(typeof (observe as any).has).toBe("function");
+    expect(typeof (observe as any).names).toBe("function");
+    expect(typeof (observe as any).destroy).toBe("function");
+    expect(registry.has("mjs-scoped")).toBe(true);
+    expect((observe as any).has("mjs-scoped")).toBe(false);
+    expect(registry.names()).toEqual(["mjs-scoped"]);
+    expect(registry.destroy("mjs-scoped")).toBe(true);
+  });
 });

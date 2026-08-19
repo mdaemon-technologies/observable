@@ -111,6 +111,7 @@ You can use observe to keep track of a value from multiple contexts
     // { test: 10 }
 
     // to remove a property from an object, set it to undefined
+    // (the key is deleted, not left behind holding undefined)
     observedObject({ test: undefined });
     // { }
 
@@ -121,6 +122,99 @@ You can use observe to keep track of a value from multiple contexts
     console.log(str()); // "test"
     
 ```
+
+### Subscription options ###
+
+A subscription accepts an options object. Both options are per subscription, never
+per observable: an observable is shared by name across unrelated modules, so one
+subscriber can never change how another one is notified.
+
+```javascript
+    const count = observe("count", 0);
+
+    // fire once, then unsubscribe automatically
+    count((newValue) => {
+      console.log("first change only", newValue);
+    }, { once: true });
+
+    // fire right away with the current value, then keep observing
+    const stop = count((newValue, oldValue) => {
+      console.log(newValue, oldValue); // 0 undefined  <- immediately
+    }, { immediate: true });
+
+    // combine them: fire once, right now
+    count((newValue) => console.log(newValue), { immediate: true, once: true });
+```
+
+`immediate` is skipped when the observable has no value yet; combined with `once`
+it then fires on the first change instead.
+
+A `once` observer is unsubscribed before it runs, so it fires exactly once even if
+it throws or writes a new value from inside the callback.
+
+> **Note:** an `immediate` observer cannot call its own unsubscribe function
+> synchronously — the `const stop = ...` binding is not assigned yet while the
+> callback runs. Use `{ once: true }` instead.
+
+### Registries ###
+
+Observables are stored in a registry keyed by name. The default export is one shared
+registry, so two modules that both use the name `"user"` share the same observable.
+When that is not what you want, create an independent one:
+
+```javascript
+    const registry = observe.createRegistry();
+
+    observe("user", "shared");
+    registry("user", "isolated");
+
+    console.log(observe("user")());   // "shared"
+    console.log(registry("user")());  // "isolated"
+```
+
+A custom registry has the same API as the default export, including its own
+`createRegistry`. Nothing crosses between registries: values, observers, and
+`destroy` are all scoped to the registry that owns them.
+
+Every registry can be inspected:
+
+```javascript
+    observe.has("user");     // true if an observable is registered under that name
+    observe.names();         // ["user", ...] in creation order, a fresh array each call
+    observe.destroy("user"); // true if an observable by that name existed
+```
+
+### Objects merge, arrays replace ###
+
+Writing to an object observable **merges** the incoming keys into the stored value.
+Writing to an array observable **replaces** it wholesale, including arrays nested
+inside an object. This asymmetry is intentional:
+
+```javascript
+    const obj = observe("mergeExample", { a: 1 });
+    obj({ b: 2 });
+    console.log(obj()); // { a: 1, b: 2 }  <- merged, "a" survives
+
+    // remove a key by setting it to undefined
+    obj({ a: undefined });
+    console.log(obj()); // { b: 2 }
+
+    const arr = observe("replaceExample", [1, 2, 3]);
+    arr([1]);
+    console.log(arr()); // [1]  <- replaced, not merged
+
+    const nested = observe("nestedExample", { list: [1, 2, 3] });
+    nested({ list: [1] });
+    console.log(nested()); // { list: [1] }  <- nested arrays replace too
+```
+
+An observable also keeps its type for life. Setting a number observable to a string
+is refused, returns `false`, and logs a warning.
+
+Values are cloned on the way in and on the way out, so neither the caller nor an
+observer can mutate the stored value by holding on to a reference. Only booleans,
+strings, numbers, plain objects, and arrays round-trip intact; a `Date`, `Map`,
+`Set`, `RegExp`, or class instance is copied as a plain object and logs a warning.
 
 ### Destroying an Observable ###
 
@@ -133,6 +227,19 @@ You can destroy an observable instance by passing a special string to the observ
     // Attempting to get the value of the destroyed observable will now return undefined
     const str = observe("stringName");
     console.log(str()); // undefined
+```
+
+Destroying drops every registered observer, and any handle still held by a caller
+becomes inert: getting returns `undefined`, setting returns `false`, and observing
+is a no-op. A stale handle can never destroy a replacement registered later under
+the same name.
+
+Because the sentinel is just a string, a string observable cannot be *set* to the
+literal `"destroy-observable-<name>"`. Use `observe.destroy(name)` when you want
+to destroy by name without relying on the sentinel:
+
+```javascript
+    observe.destroy("stringName"); // true if an observable by that name existed
 ```
 
 # License #

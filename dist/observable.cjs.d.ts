@@ -1,2 +1,2 @@
-import observe from '@mdaemon/observable';
+import observe from "./observable.js";
 export = observe;

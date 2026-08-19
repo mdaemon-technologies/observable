@@ -1,6 +1,6 @@
 {
   "name": "@mdaemon/observable",
-  "version": "3.0.2",
+  "version": "3.1.0",
   "type": "module",
   "description": "A function for creating an observable object, array, boolean, string, or number.",
   "main": "dist/observable.umd.js",
@@ -15,7 +15,7 @@
     "test": "jest",
     "test:dist": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.dist.ts",
     "dev-test": "jest --watchAll",
-    "build": "rollup -c",
+    "build": "rollup -c && tsc -p tsconfig.types.json",
     "dev": "rollup -c -w",
     "pub": "npm run build && npm run test && npm run test:dist && npm publish"
   },
@@ -52,10 +52,10 @@
   },
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/observable.mjs",
       "require": "./dist/observable.cjs",
-      "browser": "./dist/observable.umd.js",
-      "types": "./dist/index.d.ts"
+      "browser": "./dist/observable.umd.js"
     }
   }
 }

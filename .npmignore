@@ -109,3 +109,8 @@ package-lock.json
 .gitignore
 .github
 jest.config.ts
+jest.config.dist.ts
+test/
+tsconfig.json
+tsconfig.test.json
+tsconfig.types.json

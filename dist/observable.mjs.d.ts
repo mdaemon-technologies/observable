@@ -1,1 +1,2 @@
-export { default, observableType, UnknownKeys, ObserverCallback, ObservableFunction } from '@mdaemon/observable';
+export { default } from "./observable.js";
+export * from "./observable.js";
