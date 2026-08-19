@@ -47,21 +47,21 @@ You can use observe to keep track of a value from multiple contexts
 
     // observeTheseValues.js
     const observedNumber = observe("numberName", 20);
-    export observedNumber;
+    export { observedNumber };
 
     // note that objects are clones, so this object will not be changed by changes to the observedObject
     const obj = {};
     const observedObject = observe("objectName", obj);
-    export observedObject;
+    export { observedObject };
 
     const observedArray = observe("arrayName", []);
-    export observedArray;
+    export { observedArray };
 
     const observedBoolean = observe("boolName", true);
-    export observedBoolean;
+    export { observedBoolean };
 
     const observedString = observe("stringName","test");
-    export observedString;
+    export { observedString };
 ```
 
 
@@ -122,6 +122,28 @@ You can use observe to keep track of a value from multiple contexts
     console.log(str()); // "test"
     
 ```
+
+#### Initial values only apply on creation ####
+
+`observe(name, initialValue)` gets an existing observable or creates one. The
+initial value seeds an observable that does not have one yet; it never resets an
+observable that is already initialized, and never notifies its observers:
+
+```javascript
+    const first = observe("counter", 0);
+    first(42);
+
+    const second = observe("counter", 0);
+    console.log(second()); // 42, not 0 -- the existing value is left alone
+
+    // an observable created without a value can still be seeded later
+    const empty = observe("pending");
+    console.log(empty());                 // undefined
+    console.log(observe("pending", 1)()); // 1
+```
+
+> **Changed in 3.1.0:** passing an initial value for an already-initialized
+> observable previously overwrote it and notified its observers.
 
 ### Subscription options ###
 
@@ -241,6 +263,42 @@ to destroy by name without relying on the sentinel:
 ```javascript
     observe.destroy("stringName"); // true if an observable by that name existed
 ```
+
+# TypeScript #
+
+Types ship with the package and are generated from the source, so they cannot drift
+from the implementation. No casts are needed:
+
+```typescript
+    import observe from "@mdaemon/observable";
+    import type { ObserveOptions, ObserveFunction, Unsubscribe } from "@mdaemon/observable";
+
+    const count = observe("count", 0);
+
+    const value = count();                       // observableType | undefined
+    const stop: Unsubscribe = count((newValue, oldValue) => {
+      // newValue and oldValue are typed from the callback signature
+    });
+    const changed = count(1);                    // boolean | undefined
+    const registry: ObserveFunction = observe.createRegistry();
+```
+
+Exported types: `observableType`, `UnknownKeys`, `ObserverCallback`, `ObserveOptions`,
+`Unsubscribe`, `ObservableFunction`, and `ObserveFunction`.
+
+### Upgrading to 3.1.0 ###
+
+The declarations were corrected in 3.1.0. They describe the same runtime behavior as
+before, but code that relied on the previous, inaccurate types may now need changes:
+
+| Was | Now | Why |
+| --- | --- | --- |
+| reading returns `observableType` | `observableType \| undefined` | an uninitialized observable really does return `undefined` |
+| unsubscribe returns `void` | `boolean` | it reports whether the observer was still registered |
+| a write returns `boolean \| void` | `boolean \| undefined` | `undefined` is returned for the destroy sentinel |
+| object property values excluded `undefined` | include `undefined` | so `set({ key: undefined })` type-checks, as the docs describe |
+
+Casts such as `observe("x", 1) as Function` are no longer necessary and can be removed.
 
 # License #
 

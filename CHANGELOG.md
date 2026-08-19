@@ -95,6 +95,16 @@
 - Documented the deliberate objects-merge / arrays-replace asymmetry in the source and
   the README so it is not "cleaned up" into a breaking change later.
 
+### Documentation
+- The README documents subscription options, registries, the objects-merge /
+  arrays-replace asymmetry, and that an initial value applies only on creation.
+- Added a TypeScript section listing the exported types and a table of the
+  declaration corrections that TypeScript consumers may need to react to.
+- Fixed the export examples, which used `export observedNumber;` -- not valid
+  JavaScript.
+- The README examples now run as part of the test suite, so the documentation
+  cannot drift from the behavior it describes.
+
 ### Packaging
 - `exports["."]` now lists `types` first. Export conditions are matched in order, so
   a runtime condition could win and leave the declaration lookup to fall back on
@@ -105,6 +115,29 @@
   missing `Unsubscribe`, `ObserveOptions`, and `ObserveFunction`.
 - `.npmignore` excludes the test suite and TypeScript configs from the published
   tarball.
+
+## [3.0.2] - 2026-05-19
+
+Recorded retroactively from the repository history; this release shipped without a
+changelog entry.
+
+### Changed
+- Switched the Rollup build to `rollup-plugin-esbuild`, dropping
+  `@rollup/plugin-typescript`, `@rollup/plugin-terser`, and `tslib`.
+- Upgraded `jest` and `@types/jest` to v30, and `ts-jest` to `^29.4.10`.
+- Lowered the supported Node floor to 18 and updated the CI workflow to match.
+
+### Added
+- A `types` condition in the `exports` map, pointing at `dist/index.d.ts`.
+
+## [3.0.1] - 2026-05-19
+
+Recorded retroactively from the repository history; this release shipped without a
+changelog entry.
+
+### Added
+- An `exports` map in `package.json` so the ESM, CommonJS, and browser builds resolve
+  automatically.
 
 ## [3.0.0] - 2026-05-08
 

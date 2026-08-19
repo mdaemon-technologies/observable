@@ -1,4 +1,5 @@
 import observe from "./observable";
+import type { Unsubscribe, ObserveFunction } from "./observable";
 
 // Executes the README's documented examples and asserts the results the
 // README claims, so the documentation cannot drift from behavior.
@@ -38,6 +39,33 @@ describe("README examples", () => {
 
     const str = observe("stringName");
     expect(str()).toBe("test");
+  });
+
+  it("initial values only apply on creation", () => {
+    const first = observe("counter", 0);
+    first(42);
+
+    const second = observe("counter", 0);
+    expect(second()).toBe(42);          // "42, not 0"
+
+    const empty = observe("pending");
+    expect(empty()).toBeUndefined();
+    expect(observe("pending", 1)()).toBe(1);
+  });
+
+  it("typescript example compiles and behaves", () => {
+    const count = observe("tsdoc-count", 0);
+
+    const value = count();
+    const stop: Unsubscribe = count(() => undefined);
+    const changed = count(1);
+    const registry: ObserveFunction = observe.createRegistry();
+
+    expect(value).toBe(0);
+    expect(changed).toBe(true);
+    expect(typeof stop).toBe("function");
+    expect(typeof registry.names).toBe("function");
+    stop();
   });
 
   it("subscription options", () => {
