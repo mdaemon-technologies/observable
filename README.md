@@ -1,171 +1,196 @@
-[![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmdaemon-technologies%2Fobservable%2Fmaster%2Fpackage.json&query=%24.version&prefix=v&label=npm&color=blue)](https://www.npmjs.com/package/@mdaemon/observable) [![Static Badge](https://img.shields.io/badge/node-v18%2B-blue?style=flat&label=node&color=blue)](https://nodejs.org)
- [![install size](https://packagephobia.com/badge?p=@mdaemon/observable)](https://packagephobia.com/result?p=@mdaemon/observable) [![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmdaemon-technologies%2Fobservable%2Fmaster%2Fpackage.json&query=%24.license&prefix=v&label=license&color=green)](https://github.com/mdaemon-technologies/observable/blob/master/LICENSE) [![Node.js CI](https://github.com/mdaemon-technologies/observable/actions/workflows/node.js.yml/badge.svg)](https://github.com/mdaemon-technologies/observable/actions/workflows/node.js.yml)
+# @mdaemon/observable
 
-# @mdaemon/observable, A function for observing values
+[![npm](https://img.shields.io/npm/v/@mdaemon/observable?color=blue)](https://www.npmjs.com/package/@mdaemon/observable)
+[![license](https://img.shields.io/npm/l/@mdaemon/observable?color=green)](LICENSE)
+[![node](https://img.shields.io/node/v/@mdaemon/observable)](https://nodejs.org)
+[![install size](https://packagephobia.com/badge?p=@mdaemon/observable)](https://packagephobia.com/result?p=@mdaemon/observable)
+[![CI](https://github.com/mdaemon-technologies/observable/actions/workflows/node.js.yml/badge.svg)](https://github.com/mdaemon-technologies/observable/actions/workflows/node.js.yml)
+
+A function for creating an observable object, array, boolean, string, or number.
 
 The `observable` function provides methods for setting, getting, observing, and stopping observation of any of the following value types: `object`, `array`, `boolean`, `string`, and `number`.
 
-# Install #
+## Install
 
-    $ npm install @mdaemon/observable --save
-
-## Node.js (CommonJS) ##
-```javascript
-    // Resolves via the "exports" field in package.json
-    const observe = require("@mdaemon/observable");
-
-    // Or load the explicit CJS build
-    const observe = require("@mdaemon/observable/dist/observable.cjs");
+```bash
+npm install @mdaemon/observable
 ```
 
-## Node.js / Bundler (ES Modules) ##
-```javascript
-    import observe from "@mdaemon/observable";
+## Usage
 
-    // Or load the explicit ESM build
-    import observe from "@mdaemon/observable/dist/observable.mjs";
+### ES modules
+```js
+// Resolves via the "exports" field in package.json
+import observe from "@mdaemon/observable";
+```
+
+### CommonJS
+```js
+// Resolves via the "exports" field in package.json
+const observe = require("@mdaemon/observable");
 ```
 
 > **Note:** Bundlers (Rollup, webpack, Vite, etc.) and Node.js resolve the `exports` field in
 > `package.json` and will use the appropriate build automatically.
 
-## Browser (UMD) ##
-```HTML
-    <script src="/path_to_modules/@mdaemon/observable/dist/observable.umd.js"></script>
-    <script>
-      // The library is exposed as the global variable `observable`
-      const observe = window.observable;
-    </script>
+### Browser (UMD)
+```html
+<script src="/path_to_modules/@mdaemon/observable/dist/observable.umd.js"></script>
+<script>
+  // The library is exposed as the global variable `observable`
+  const observe = window.observable;
+</script>
 ```
 
-### observe ###
+### TypeScript
+
+Types ship with the package and are generated from the source, so they cannot drift
+from the implementation. No casts are needed:
+
+```ts
+import observe from "@mdaemon/observable";
+import type { ObserveOptions, ObserveFunction, Unsubscribe } from "@mdaemon/observable";
+
+const count = observe("count", 0);
+
+const value = count();                       // observableType | undefined
+const stop: Unsubscribe = count((newValue, oldValue) => {
+  // newValue and oldValue are typed from the callback signature
+});
+const changed = count(1);                    // boolean | undefined
+const registry: ObserveFunction = observe.createRegistry();
+```
+
+Exported types: `observableType`, `UnknownKeys`, `ObserverCallback`, `ObserveOptions`,
+`Unsubscribe`, `ObservableFunction`, and `ObserveFunction`.
+
+## observe
 
 You can use observe to keep track of a value from multiple contexts
-#### Export observables ####
-```javascript
-    import observe from "@mdaemon/observable/dist/observable.mjs";
+### Export observables
+```js
+import observe from "@mdaemon/observable";
 
-    // observeTheseValues.js
-    const observedNumber = observe("numberName", 20);
-    export { observedNumber };
+// observeTheseValues.js
+const observedNumber = observe("numberName", 20);
+export { observedNumber };
 
-    // note that objects are clones, so this object will not be changed by changes to the observedObject
-    const obj = {};
-    const observedObject = observe("objectName", obj);
-    export { observedObject };
+// note that objects are clones, so this object will not be changed by changes to the observedObject
+const obj = {};
+const observedObject = observe("objectName", obj);
+export { observedObject };
 
-    const observedArray = observe("arrayName", []);
-    export { observedArray };
+const observedArray = observe("arrayName", []);
+export { observedArray };
 
-    const observedBoolean = observe("boolName", true);
-    export { observedBoolean };
+const observedBoolean = observe("boolName", true);
+export { observedBoolean };
 
-    const observedString = observe("stringName","test");
-    export { observedString };
+const observedString = observe("stringName","test");
+export { observedString };
 ```
 
+### Import observables
+```js
+// index.js
+import { 
+    observedNumber, observedObject, 
+    observedArray, observedBoolean, 
+    observedString 
+} from "observeTheseValues.js";
 
-#### Import observables ####
-```javascript
-    // index.js
-    import { 
-        observedNumber, observedObject, 
-        observedArray, observedBoolean, 
-        observedString 
-    } from "observeTheseValues.js";
+// change the value and return changed true/false
+let changed = observedNumber(30);
+console.log(changed); // true
 
-    // change the value and return changed true/false
-    let changed = observedNumber(30);
-    console.log(changed); // true
+console.log(observedNumber(30)); // false
 
-    console.log(observedNumber(30)); // false
-    
-    // get the value
-    console.log(observedNumber() === 30); // true
+// get the value
+console.log(observedNumber() === 30); // true
 
-    // watch for value changes
-    const stopObservingValue = observedNumber((newValue, oldValue) => {
-      console.log("new", newValue);
-      console.log("old", oldValue);
-      console.log(newValue === oldValue);
-    });
+// watch for value changes
+const stopObservingValue = observedNumber((newValue, oldValue) => {
+  console.log("new", newValue);
+  console.log("old", oldValue);
+  console.log(newValue === oldValue);
+});
 
-    // change the value for observation
-    observedNumber(3);
-    // new 3
-    // old 30
-    // false
+// change the value for observation
+observedNumber(3);
+// new 3
+// old 30
+// false
 
-    // stop observing changes
-    stopObservingValue();
+// stop observing changes
+stopObservingValue();
 
-    // change the value again
-    observedNumber(60); // nothing logged
+// change the value again
+observedNumber(60); // nothing logged
 
-    // observe also finds changes that are part of objects
-    const stopObservingObject = observedObject((newValue, oldValue) => {
-      console.log("new", newValue);
-    });
+// observe also finds changes that are part of objects
+const stopObservingObject = observedObject((newValue, oldValue) => {
+  console.log("new", newValue);
+});
 
-    console.log(observedObject({ test: 10 })); // true
-    // { test: 10 }
+console.log(observedObject({ test: 10 })); // true
+// { test: 10 }
 
-    // to remove a property from an object, set it to undefined
-    // (the key is deleted, not left behind holding undefined)
-    observedObject({ test: undefined });
-    // { }
+// to remove a property from an object, set it to undefined
+// (the key is deleted, not left behind holding undefined)
+observedObject({ test: undefined });
+// { }
 
-    // from 2.0 you can also get an already observed value using the name of the value passed to the original
+// from 2.0 you can also get an already observed value using the name of the value passed to the original
 
-    const str = observe("stringName");
+const str = observe("stringName");
 
-    console.log(str()); // "test"
-    
+console.log(str()); // "test"
+
 ```
 
-#### Initial values only apply on creation ####
+### Initial values only apply on creation
 
 `observe(name, initialValue)` gets an existing observable or creates one. The
 initial value seeds an observable that does not have one yet; it never resets an
 observable that is already initialized, and never notifies its observers:
 
-```javascript
-    const first = observe("counter", 0);
-    first(42);
+```js
+const first = observe("counter", 0);
+first(42);
 
-    const second = observe("counter", 0);
-    console.log(second()); // 42, not 0 -- the existing value is left alone
+const second = observe("counter", 0);
+console.log(second()); // 42, not 0 -- the existing value is left alone
 
-    // an observable created without a value can still be seeded later
-    const empty = observe("pending");
-    console.log(empty());                 // undefined
-    console.log(observe("pending", 1)()); // 1
+// an observable created without a value can still be seeded later
+const empty = observe("pending");
+console.log(empty());                 // undefined
+console.log(observe("pending", 1)()); // 1
 ```
 
 > **Changed in 3.1.0:** passing an initial value for an already-initialized
 > observable previously overwrote it and notified its observers.
 
-### Subscription options ###
+## Subscription options
 
 A subscription accepts an options object. Both options are per subscription, never
 per observable: an observable is shared by name across unrelated modules, so one
 subscriber can never change how another one is notified.
 
-```javascript
-    const count = observe("count", 0);
+```js
+const count = observe("count", 0);
 
-    // fire once, then unsubscribe automatically
-    count((newValue) => {
-      console.log("first change only", newValue);
-    }, { once: true });
+// fire once, then unsubscribe automatically
+count((newValue) => {
+  console.log("first change only", newValue);
+}, { once: true });
 
-    // fire right away with the current value, then keep observing
-    const stop = count((newValue, oldValue) => {
-      console.log(newValue, oldValue); // 0 undefined  <- immediately
-    }, { immediate: true });
+// fire right away with the current value, then keep observing
+const stop = count((newValue, oldValue) => {
+  console.log(newValue, oldValue); // 0 undefined  <- immediately
+}, { immediate: true });
 
-    // combine them: fire once, right now
-    count((newValue) => console.log(newValue), { immediate: true, once: true });
+// combine them: fire once, right now
+count((newValue) => console.log(newValue), { immediate: true, once: true });
 ```
 
 `immediate` is skipped when the observable has no value yet; combined with `once`
@@ -178,20 +203,20 @@ it throws or writes a new value from inside the callback.
 > synchronously — the `const stop = ...` binding is not assigned yet while the
 > callback runs. Use `{ once: true }` instead.
 
-### Registries ###
+## Registries
 
 Observables are stored in a registry keyed by name. The default export is one shared
 registry, so two modules that both use the name `"user"` share the same observable.
 When that is not what you want, create an independent one:
 
-```javascript
-    const registry = observe.createRegistry();
+```js
+const registry = observe.createRegistry();
 
-    observe("user", "shared");
-    registry("user", "isolated");
+observe("user", "shared");
+registry("user", "isolated");
 
-    console.log(observe("user")());   // "shared"
-    console.log(registry("user")());  // "isolated"
+console.log(observe("user")());   // "shared"
+console.log(registry("user")());  // "isolated"
 ```
 
 A custom registry has the same API as the default export, including its own
@@ -200,34 +225,34 @@ A custom registry has the same API as the default export, including its own
 
 Every registry can be inspected:
 
-```javascript
-    observe.has("user");     // true if an observable is registered under that name
-    observe.names();         // ["user", ...] in creation order, a fresh array each call
-    observe.destroy("user"); // true if an observable by that name existed
+```js
+observe.has("user");     // true if an observable is registered under that name
+observe.names();         // ["user", ...] in creation order, a fresh array each call
+observe.destroy("user"); // true if an observable by that name existed
 ```
 
-### Objects merge, arrays replace ###
+## Objects merge, arrays replace
 
 Writing to an object observable **merges** the incoming keys into the stored value.
 Writing to an array observable **replaces** it wholesale, including arrays nested
 inside an object. This asymmetry is intentional:
 
-```javascript
-    const obj = observe("mergeExample", { a: 1 });
-    obj({ b: 2 });
-    console.log(obj()); // { a: 1, b: 2 }  <- merged, "a" survives
+```js
+const obj = observe("mergeExample", { a: 1 });
+obj({ b: 2 });
+console.log(obj()); // { a: 1, b: 2 }  <- merged, "a" survives
 
-    // remove a key by setting it to undefined
-    obj({ a: undefined });
-    console.log(obj()); // { b: 2 }
+// remove a key by setting it to undefined
+obj({ a: undefined });
+console.log(obj()); // { b: 2 }
 
-    const arr = observe("replaceExample", [1, 2, 3]);
-    arr([1]);
-    console.log(arr()); // [1]  <- replaced, not merged
+const arr = observe("replaceExample", [1, 2, 3]);
+arr([1]);
+console.log(arr()); // [1]  <- replaced, not merged
 
-    const nested = observe("nestedExample", { list: [1, 2, 3] });
-    nested({ list: [1] });
-    console.log(nested()); // { list: [1] }  <- nested arrays replace too
+const nested = observe("nestedExample", { list: [1, 2, 3] });
+nested({ list: [1] });
+console.log(nested()); // { list: [1] }  <- nested arrays replace too
 ```
 
 An observable also keeps its type for life. Setting a number observable to a string
@@ -238,17 +263,17 @@ observer can mutate the stored value by holding on to a reference. Only booleans
 strings, numbers, plain objects, and arrays round-trip intact; a `Date`, `Map`,
 `Set`, `RegExp`, or class instance is copied as a plain object and logs a warning.
 
-### Destroying an Observable ###
+## Destroying an Observable
 
 You can destroy an observable instance by passing a special string to the observe function. This will remove the observable from the internal list, allowing it to be garbage collected if there are no other references to it.
 
-```javascript
-    // Destroy the observable instance
-    str("destroy-observable-stringName");
+```js
+// Destroy the observable instance
+str("destroy-observable-stringName");
 
-    // Attempting to get the value of the destroyed observable will now return undefined
-    const str = observe("stringName");
-    console.log(str()); // undefined
+// Attempting to get the value of the destroyed observable will now return undefined
+const str = observe("stringName");
+console.log(str()); // undefined
 ```
 
 Destroying drops every registered observer, and any handle still held by a caller
@@ -260,55 +285,18 @@ Because the sentinel is just a string, a string observable cannot be *set* to th
 literal `"destroy-observable-<name>"`. Use `observe.destroy(name)` when you want
 to destroy by name without relying on the sentinel:
 
-```javascript
-    observe.destroy("stringName"); // true if an observable by that name existed
+```js
+observe.destroy("stringName"); // true if an observable by that name existed
 ```
 
-# TypeScript #
+## Changelog
 
-Types ship with the package and are generated from the source, so they cannot drift
-from the implementation. No casts are needed:
+See [CHANGELOG.md](CHANGELOG.md).
 
-```typescript
-    import observe from "@mdaemon/observable";
-    import type { ObserveOptions, ObserveFunction, Unsubscribe } from "@mdaemon/observable";
+## License
 
-    const count = observe("count", 0);
+Published under the [LGPL-2.1](LICENSE) license.
 
-    const value = count();                       // observableType | undefined
-    const stop: Unsubscribe = count((newValue, oldValue) => {
-      // newValue and oldValue are typed from the callback signature
-    });
-    const changed = count(1);                    // boolean | undefined
-    const registry: ObserveFunction = observe.createRegistry();
-```
-
-Exported types: `observableType`, `UnknownKeys`, `ObserverCallback`, `ObserveOptions`,
-`Unsubscribe`, `ObservableFunction`, and `ObserveFunction`.
-
-### Upgrading to 3.1.0 ###
-
-The declarations were corrected in 3.1.0. They describe the same runtime behavior as
-before, but code that relied on the previous, inaccurate types may now need changes:
-
-| Was | Now | Why |
-| --- | --- | --- |
-| reading returns `observableType` | `observableType \| undefined` | an uninitialized observable really does return `undefined` |
-| unsubscribe returns `void` | `boolean` | it reports whether the observer was still registered |
-| a write returns `boolean \| void` | `boolean \| undefined` | `undefined` is returned for the destroy sentinel |
-| object property values excluded `undefined` | include `undefined` | so `set({ key: undefined })` type-checks, as the docs describe |
-
-Casts such as `observe("x", 1) as Function` are no longer necessary and can be removed.
-
-# License #
-
-Published under the [LGPL-2.1 license](https://github.com/mdaemon-technologies/observable/blob/main/LICENSE "LGPL-2.1 License").
-
-# Changelog #
-
-See [CHANGELOG.md](CHANGELOG.md) for release history.
-
-Published by<br/> 
-<b>MDaemon Technologies, Ltd.<br/>
-Simple Secure Email</b><br/>
+Published by **MDaemon Technologies, Ltd.**  
+Simple Secure Email  
 [https://www.mdaemon.com](https://www.mdaemon.com)

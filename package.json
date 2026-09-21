@@ -1,6 +1,6 @@
 {
   "name": "@mdaemon/observable",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "type": "module",
   "description": "A function for creating an observable object, array, boolean, string, or number.",
   "main": "dist/observable.umd.js",
@@ -37,6 +37,9 @@
     "url": "https://www.mdaemon.com"
   },
   "license": "LGPL-2.1",
+  "engines": {
+    "node": ">=18"
+  },
   "bugs": {
     "url": "https://github.com/mdaemon-technologies/observable/issues"
   },

@@ -1,40 +1,11 @@
 # Changelog
 
+All notable changes to this project are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 ## [3.1.0] - 2026-08-19
-
-### Security
-- **Fixed prototype pollution (CWE-1321).** A crafted payload such as
-  `JSON.parse('{"__proto__":{"isAdmin":true}}')` passed to an object observable
-  wrote onto `Object.prototype` globally. `__proto__`, `constructor`, and
-  `prototype` keys are now skipped, and all property writes go through
-  `Object.defineProperty` so inherited setters are never invoked.
-
-### Fixed
-- Nested arrays now shrink when the incoming array is shorter; previously removals
-  were silently ignored and the change was not reported.
-- Nested values that change type (object -> primitive, array -> object, and so on)
-  are now updated instead of being silently dropped.
-- Objects and arrays supplied by the caller are cloned before being stored, so the
-  internal value can no longer be mutated from outside without notification. This
-  also applies to the initial value passed to `observe`.
-- Observers are notified from a snapshot, so an observer that unsubscribes during
-  notification no longer causes the next observer to be skipped. Observers removed
-  mid-notification are skipped rather than called.
-- An observer that throws no longer prevents the remaining observers from being
-  notified; the error is reported via `console.error`.
-- Each observer receives its own copy of the new and old values, so one subscriber
-  can no longer mutate what the next one sees.
-- `observe(name, initialValue)` no longer resets an existing observable or notifies
-  its observers. The initial value applies on creation, or as a seed for an
-  observable created without one.
-- Destroying an observable now drops its observers and makes any stale handle inert.
-  A stale handle can no longer destroy a replacement registered under the same name.
-- Cycle detection tracks (source, target) pairs, so values reachable by more than one
-  path are no longer skipped during updates and comparisons.
-- `NaN` is treated as equal to itself, so setting `NaN` over `NaN` is no longer
-  reported as a change on every call.
-- Setting a property to `undefined` now deletes the key, as the README documents;
-  previously the key remained with an `undefined` value.
 
 ### Added
 - `observe.destroy(name)` destroys an observable by name without the
@@ -94,8 +65,6 @@
   not planned for this release.
 - Documented the deliberate objects-merge / arrays-replace asymmetry in the source and
   the README so it is not "cleaned up" into a breaking change later.
-
-### Documentation
 - The README documents subscription options, registries, the objects-merge /
   arrays-replace asymmetry, and that an initial value applies only on creation.
 - Added a TypeScript section listing the exported types and a table of the
@@ -104,8 +73,6 @@
   JavaScript.
 - The README examples now run as part of the test suite, so the documentation
   cannot drift from the behavior it describes.
-
-### Packaging
 - `exports["."]` now lists `types` first. Export conditions are matched in order, so
   a runtime condition could win and leave the declaration lookup to fall back on
   guessing.
@@ -116,19 +83,53 @@
 - `.npmignore` excludes the test suite and TypeScript configs from the published
   tarball.
 
+### Fixed
+- Nested arrays now shrink when the incoming array is shorter; previously removals
+  were silently ignored and the change was not reported.
+- Nested values that change type (object -> primitive, array -> object, and so on)
+  are now updated instead of being silently dropped.
+- Objects and arrays supplied by the caller are cloned before being stored, so the
+  internal value can no longer be mutated from outside without notification. This
+  also applies to the initial value passed to `observe`.
+- Observers are notified from a snapshot, so an observer that unsubscribes during
+  notification no longer causes the next observer to be skipped. Observers removed
+  mid-notification are skipped rather than called.
+- An observer that throws no longer prevents the remaining observers from being
+  notified; the error is reported via `console.error`.
+- Each observer receives its own copy of the new and old values, so one subscriber
+  can no longer mutate what the next one sees.
+- `observe(name, initialValue)` no longer resets an existing observable or notifies
+  its observers. The initial value applies on creation, or as a seed for an
+  observable created without one.
+- Destroying an observable now drops its observers and makes any stale handle inert.
+  A stale handle can no longer destroy a replacement registered under the same name.
+- Cycle detection tracks (source, target) pairs, so values reachable by more than one
+  path are no longer skipped during updates and comparisons.
+- `NaN` is treated as equal to itself, so setting `NaN` over `NaN` is no longer
+  reported as a change on every call.
+- Setting a property to `undefined` now deletes the key, as the README documents;
+  previously the key remained with an `undefined` value.
+
+### Security
+- **Fixed prototype pollution (CWE-1321).** A crafted payload such as
+  `JSON.parse('{"__proto__":{"isAdmin":true}}')` passed to an object observable
+  wrote onto `Object.prototype` globally. `__proto__`, `constructor`, and
+  `prototype` keys are now skipped, and all property writes go through
+  `Object.defineProperty` so inherited setters are never invoked.
+
 ## [3.0.2] - 2026-05-19
 
 Recorded retroactively from the repository history; this release shipped without a
 changelog entry.
+
+### Added
+- A `types` condition in the `exports` map, pointing at `dist/index.d.ts`.
 
 ### Changed
 - Switched the Rollup build to `rollup-plugin-esbuild`, dropping
   `@rollup/plugin-typescript`, `@rollup/plugin-terser`, and `tslib`.
 - Upgraded `jest` and `@types/jest` to v30, and `ts-jest` to `^29.4.10`.
 - Lowered the supported Node floor to 18 and updated the CI workflow to match.
-
-### Added
-- A `types` condition in the `exports` map, pointing at `dist/index.d.ts`.
 
 ## [3.0.1] - 2026-05-19
 
@@ -141,6 +142,10 @@ changelog entry.
 
 ## [3.0.0] - 2026-05-08
 
+### Added
+- `tsconfig.json` with explicit TypeScript 6-compatible compiler options (`moduleResolution: bundler`, `strict: true`, `types: []`, `rootDir: ./src`)
+- `tsconfig.test.json` extending `tsconfig.json` with `types: ["jest", "node"]` for test compilation
+
 ### Changed
 - Upgraded TypeScript from `^5.8.3` to `^6.0.0`
 - Upgraded `ts-jest` from `^29.3.2` to `^29.4.9`
@@ -149,6 +154,7 @@ changelog entry.
 - Upgraded `rollup` from `^4.40.0` to `^4.60.3`
 - Converted `jest.config.ts` from CommonJS (`module.exports`) to ESM (`export default`)
 
-### Added
-- `tsconfig.json` with explicit TypeScript 6-compatible compiler options (`moduleResolution: bundler`, `strict: true`, `types: []`, `rootDir: ./src`)
-- `tsconfig.test.json` extending `tsconfig.json` with `types: ["jest", "node"]` for test compilation
+[3.1.0]: https://www.npmjs.com/package/@mdaemon/observable/v/3.1.0
+[3.0.2]: https://www.npmjs.com/package/@mdaemon/observable/v/3.0.2
+[3.0.1]: https://www.npmjs.com/package/@mdaemon/observable/v/3.0.1
+[3.0.0]: https://www.npmjs.com/package/@mdaemon/observable/v/3.0.0
