@@ -1,0 +1,35 @@
+# Stages a new npm version when a GitHub Release is published. npm trusted publishing (OIDC)
+# authenticates the job, so no npm token is stored. A maintainer then approves the staged
+# version with 2FA on npmjs.com (or `npm stage approve`) before it is public.
+
+name: Publish to npm
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write   # lets npm exchange a GitHub OIDC token for a short-lived publish token
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+    - uses: actions/setup-node@v7
+      with:
+        node-version: 24.x
+        registry-url: https://registry.npmjs.org
+        cache: 'npm'
+    - run: npm install -g npm@latest   # trusted publishing and staged publishing need a recent npm
+    - run: npm ci
+    - run: npm run build
+    - run: npm test
+    - run: npm run test:dist   # exercises the built bundles
+    - name: Check the release tag matches package.json
+      env:
+        TAG: ${{ github.event.release.tag_name }}
+      run: test "v$(node -p "require('./package.json').version")" = "$TAG"
+    - run: npm stage publish
