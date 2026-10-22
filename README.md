@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@mdaemon/observable?color=blue)](https://www.npmjs.com/package/@mdaemon/observable)
 [![license](https://img.shields.io/npm/l/@mdaemon/observable?color=green)](LICENSE)
 [![node](https://img.shields.io/node/v/@mdaemon/observable)](https://nodejs.org)
-[![install size](https://packagephobia.com/badge?p=@mdaemon/observable)](https://packagephobia.com/result?p=@mdaemon/observable)
+[![install size](https://img.shields.io/npm/unpacked-size/@mdaemon/observable)](https://packagephobia.com/result?p=@mdaemon/observable)
 [![CI](https://github.com/mdaemon-technologies/observable/actions/workflows/node.js.yml/badge.svg)](https://github.com/mdaemon-technologies/observable/actions/workflows/node.js.yml)
 
 A function for creating an observable object, array, boolean, string, or number.
