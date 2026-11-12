@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import observe from "./observable";
 import type { Unsubscribe, ObserveFunction } from "./observable";
 

@@ -1,3 +1,4 @@
+import { beforeAll, describe, expect, it } from "vitest";
 // In Node.js ESM context (type:module), the UMD wrapper falls through to the global
 // registration branch, setting globalThis.observable = factory().
 describe("UMD format (dist/observable.umd.js)", () => {
@@ -33,15 +34,15 @@ describe("UMD format (dist/observable.umd.js)", () => {
     expect(x()).toBe("world");
   });
 
-  it("notifies observers on change", (done) => {
+  it("notifies observers on change", () => {
     const x = observe("umd-obs", 0) as Function;
+    const calls: Array<[number, number]> = [];
     const stop = x((newVal: number, oldVal: number) => {
-      expect(newVal).toBe(1);
-      expect(oldVal).toBe(0);
-      stop();
-      done();
+      calls.push([newVal, oldVal]);
     }) as Function;
     x(1);
+    stop();
+    expect(calls).toEqual([[1, 0]]);
   });
 
   it("does not notify observers when value is unchanged", () => {

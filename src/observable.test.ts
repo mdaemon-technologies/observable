@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 import observe, { type UnknownKeys } from "./observable";
 
 describe("observable-tests", () => {
@@ -45,19 +46,20 @@ describe("observable-tests", () => {
   
   describe("an observe value", () => {
     const x = observe("x6", 10);
-    it("can be observed by passing in a function", done => {
+    it("can be observed by passing in a function", () => {
+      // Observers run inside a try/catch, so record the calls and assert outside.
+      const calls: Array<[unknown, unknown]> = [];
       const stop = x((val, oldVal) => {
-        expect(val).toBe(11);
-        expect(oldVal).toBe(10);
+        calls.push([val, oldVal]);
         stop();
-        done();
       });
-      
+
       x(11);
+      expect(calls).toEqual([[11, 10]]);
     });
 
     it("cannot change the type of value once initialized", () => {
-      const spy = jest.spyOn(console, "warn").mockImplementation(() => {});
+      const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
       const success = x("test");
       expect(success).toBe(false);
@@ -71,28 +73,35 @@ describe("observable-tests", () => {
       spy.mockRestore();
     });
 
-    it("can see a change in an object", done => {
+    it("can see a change in an object", () => {
       const y = observe("y", { "a": 1 });
+      const first: any[] = [];
       const stop = y((val: any, oldVal: any) => {
-        expect(val.a).toBe(2);
-        expect(oldVal.a).toBe(1);
-        expect(val).not.toBe(oldVal);
+        first.push(val, oldVal);
         stop();
       });
 
       y({ a: 2});
 
+      expect(first).toHaveLength(2);
+      expect(first[0].a).toBe(2);
+      expect(first[1].a).toBe(1);
+      expect(first[0]).not.toBe(first[1]);
+
+      const second: any[] = [];
       const stop2 = y((val: any, oldVal: any) => {
-        expect(val.a).toBe(2);
-        expect(oldVal.a).toBe(2);
-        expect(val.b).toBe(3);
-        expect(oldVal.b).toBe(undefined);
-        expect(val).not.toBe(oldVal);
+        second.push(val, oldVal);
         stop2();
-        done();
       });
 
       y({ b: 3 });
+
+      expect(second).toHaveLength(2);
+      expect(second[0].a).toBe(2);
+      expect(second[1].a).toBe(2);
+      expect(second[0].b).toBe(3);
+      expect(second[1].b).toBe(undefined);
+      expect(second[0]).not.toBe(second[1]);
     });
 
     it("can see when nothing changed in the object", () => {
@@ -102,24 +111,27 @@ describe("observable-tests", () => {
       expect(y({ a: 1 })).toBe(false);
     });
 
-    it("can see a change in an array", done => {
+    it("can see a change in an array", () => {
       const y = observe("y2", [1,2,3]);
+      const calls: Array<[unknown, unknown]> = [];
       const stop = y((val: any, oldVal: any) => {
-        expect(val).toEqual([]);
-        expect(oldVal).toEqual([1,2,3]);
+        calls.push([val, oldVal]);
         stop();
       });
 
       y([]);
 
       const stop2 = y((val: any, oldVal: any) => {
-        expect(val).toEqual([{test: 1}, {test: 2}]);
-        expect(oldVal).toEqual([]);
+        calls.push([val, oldVal]);
         stop2();
-        done();
       });
 
       y([{test: 1}, {test: 2}]);
+
+      expect(calls).toEqual([
+        [[], [1, 2, 3]],
+        [[{test: 1}, {test: 2}], []],
+      ]);
     });
 
     it("handles circular references without infinite recursion", () => {
@@ -297,7 +309,7 @@ describe("observer notification", () => {
 
 describe("observer errors", () => {
   it("isolates a throwing observer from the rest", () => {
-    const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     const o = observe("observer-throws", 0);
     const calls: string[] = [];
 
@@ -550,10 +562,10 @@ describe("property removal", () => {
 });
 
 describe("diagnostics", () => {
-  let warnSpy: jest.SpyInstance;
+  let warnSpy: MockInstance<typeof console.warn>;
 
   beforeEach(() => {
-    warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -658,7 +670,7 @@ describe("undefined means absent", () => {
 
 describe("reserved keys", () => {
   it("warns instead of silently discarding a reserved key", () => {
-    const spy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const o = observe("reserved-warn", { company: "x" });
 
     o({ company: "y", constructor: "ACME Corp" } as never);
@@ -687,7 +699,7 @@ describe("once", () => {
   });
 
   it("unsubscribes a once observer even when it throws", () => {
-    const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     const o = observe("once-throws", 0);
     let calls = 0;
 
@@ -802,7 +814,7 @@ describe("immediate", () => {
   });
 
   it("does not let a throwing immediate observer break the subscription call", () => {
-    const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     const o = observe("immediate-throws", 1);
 
     let stop: Function | undefined;
@@ -943,7 +955,7 @@ describe("option edge cases", () => {
     // The caller's `const stop = ...` binding is not assigned while the immediate
     // callback runs, so calling it there is a ReferenceError. It is contained and
     // logged rather than thrown at the caller; use { once: true } instead.
-    const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     const o = observe("immediate-self-unsub", 1);
 
     let stop: Function | undefined;

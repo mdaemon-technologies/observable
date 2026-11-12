@@ -64,6 +64,14 @@ const registry: ObserveFunction = observe.createRegistry();
 Exported types: `observableType`, `UnknownKeys`, `ObserverCallback`, `ObserveOptions`,
 `Unsubscribe`, `ObservableFunction`, and `ObserveFunction`.
 
+In a CommonJS project (`"module": "node16"` or `"nodenext"`), use `import ... = require`.
+The same types are available, and need TypeScript 5.3 or later:
+
+```ts
+import observe = require("@mdaemon/observable");
+import type { Unsubscribe } from "@mdaemon/observable";
+```
+
 ## observe
 
 You can use observe to keep track of a value from multiple contexts
@@ -288,6 +296,28 @@ to destroy by name without relying on the sentinel:
 ```js
 observe.destroy("stringName"); // true if an observable by that name existed
 ```
+
+## Development
+
+The package runs on Node.js 18 or later. Building and testing it needs Node.js 22.12 or
+later.
+
+```bash
+npm install
+npm run typecheck    # type-check the source, tests, and build configs
+npm test             # unit tests and the README examples (Vitest)
+npm run build        # ESM, CJS, and UMD bundles (Vite) and type declarations (tsc)
+npm run test:dist    # test the built bundles in dist/
+npm run test:smoke   # smoke-test dist/ on plain Node.js, no dependencies needed
+npm run test:types   # type-check ESM and CommonJS consumers on TypeScript 7 and 6
+```
+
+The build uses TypeScript 7. Run it through the npm scripts rather than `npx tsc`:
+TypeScript 6 is also installed for the `node10` consumer check and may own the bare
+`tsc` command.
+
+CI runs all of these on Node.js 22, 24, and 26, and runs the smoke test on Node.js 18
+and 20.
 
 ## Changelog
 

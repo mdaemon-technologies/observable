@@ -103,14 +103,15 @@ typings/
 .tern-port
 
 src/
-rollup.config.js
+vite.config.ts
 package-lock.json
 .gitattributes
 .gitignore
 .github
-jest.config.ts
-jest.config.dist.ts
+vitest.config.dist.ts
 test/
 tsconfig.json
 tsconfig.test.json
 tsconfig.types.json
+claude.md
+release

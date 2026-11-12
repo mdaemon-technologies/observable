@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 // @ts-ignore - observable.mjs uses a package-scoped .d.ts; TypeScript cannot resolve it as a relative .mjs import
 import observe from "../dist/observable.mjs";
 
@@ -24,15 +25,15 @@ describe("MJS format (dist/observable.mjs)", () => {
     expect(x()).toBe("world");
   });
 
-  it("notifies observers on change", (done) => {
+  it("notifies observers on change", () => {
     const x = observe("mjs-obs", 0) as Function;
+    const calls: Array<[number, number]> = [];
     const stop = x((newVal: number, oldVal: number) => {
-      expect(newVal).toBe(1);
-      expect(oldVal).toBe(0);
-      stop();
-      done();
+      calls.push([newVal, oldVal]);
     }) as Function;
     x(1);
+    stop();
+    expect(calls).toEqual([[1, 0]]);
   });
 
   it("does not notify observers when value is unchanged", () => {

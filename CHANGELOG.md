@@ -5,6 +5,84 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.2] - 2026-11-12
+
+Fixes the TypeScript types for CommonJS consumers. No API or runtime changes; the
+bundles are rebuilt with new tooling.
+
+### Fixed
+- **TypeScript types for `require("@mdaemon/observable")` under `node16` and
+  `nodenext` module resolution.** `exports` had one `types` entry, `dist/index.d.ts`,
+  and because the package is `"type": "module"`, TypeScript read it as an ES module
+  for `require` too. Under `node16`, `import observe = require("@mdaemon/observable")`
+  failed with TS1471. Under `nodenext`, `observe` was typed as a module object, so
+  calling it or using `observe.destroy` failed to compile. The JavaScript always
+  worked; only the types were wrong.
+
+  The `require` condition now points at a new `dist/observable.d.cts`, which uses
+  `export =` like the CJS bundle and also exposes every exported type, so
+  `import type { Unsubscribe } from "@mdaemon/observable"` works from CommonJS.
+  The new file uses the `resolution-mode` import attribute, so CommonJS consumers
+  under `node16`/`nodenext` need TypeScript 5.3 or later. Older versions could not
+  use these types from CommonJS before this fix either. ES module, `bundler`, and
+  `node10` consumers are unaffected.
+
+### Changed
+- **The bundles are built with Vite 8** (Rolldown, with the Oxc minifier) instead of
+  Rollup with `rollup-plugin-esbuild`. The output is still ES2015, still minified,
+  still has `"use strict"` in the CJS and UMD builds, and still has a single default
+  export. All three bundles are 1–3% smaller. The generated type declarations are
+  byte-identical to 3.1.1.
+- **The published package is now an allowlist.** `package.json` `files` limits the
+  tarball to `dist/`, `README.md`, `CHANGELOG.md`, `LICENSE`, and `package.json`.
+  Before, any repository file not named in `.npmignore` was published too, including
+  `CLAUDE.md`.
+- Tests run on Vitest 5 instead of Jest 30 with ts-jest. `test:dist` now loads the
+  built bundles through Node itself, not a transform, so it tests exactly what is
+  published.
+- **Built with TypeScript 7** (the native compiler) instead of TypeScript 6. The
+  generated `dist/observable.d.ts` is byte-identical. TypeScript 6 stays installed
+  as `@typescript/typescript6` (`tsc6`), only to check `node10` consumers, which
+  TypeScript 7 no longer supports.
+- Building and testing the package now needs Node.js 22.12 or later (Vitest 5). This
+  affects contributors only. `engines` stays at Node.js 18 or later for consumers.
+- Removed devDependencies `rollup`, `rollup-plugin-esbuild`, `jest`, `ts-jest`,
+  `@types/jest`, and `ts-node`. Added `vite`, `vitest`, `@types/node`, and
+  `@typescript/typescript6`. Upgraded `typescript` from `^6.0.0` to `^7.0.2`.
+- CI builds and tests on Node.js 22, 24, and 26. Node.js 18 and 20 can no longer run
+  the dev tooling, so they run the smoke test below against the built bundles.
+
+### Added
+- `npm run typecheck` type-checks the source, the tests, and the build configs.
+  Vitest does not type-check, so this replaces the checking ts-jest used to do.
+- `npm run test:smoke` (`test/smoke.cjs`) is a dependency-free smoke test of the
+  built bundles. It loads the package through its `exports` map with both `require`
+  and `import`, loads the CJS and ESM files directly, and runs the UMD file as a
+  browser `<script>`. It runs on plain Node.js with no `npm install`.
+- `npm run test:types` type-checks consumer projects against the package as it would
+  be published: ES module and CommonJS consumers on TypeScript 7 under `node16`,
+  `nodenext`, and `bundler`, and on TypeScript 6 under those plus `node10`. It also
+  fails if the hand-written type shims stop matching the generated declarations.
+  This check would have caught the CommonJS types bug above.
+- Releases are published from GitHub Actions (`publish.yml`) with npm trusted
+  publishing, so no npm token is stored. Publishing a GitHub Release builds and tests
+  the package, smoke-tests that build on Node.js 18 and 20, then stages that exact
+  `dist/` for a maintainer to approve on npmjs.com.
+
+## [3.1.1] - 2026-09-21
+
+No code changes.
+
+### Added
+- `engines` in `package.json` declares Node.js 18 or later.
+
+### Changed
+- Reorganized the README: one heading hierarchy, a Usage section per module format
+  (ES modules, CommonJS, UMD, TypeScript), and badges that read the version, license,
+  and Node.js range from the npm registry.
+- Expanded this changelog to cover 3.1.0 in full and added the missing 3.0.1 and
+  3.0.2 entries.
+
 ## [3.1.0] - 2026-08-19
 
 ### Added
@@ -154,6 +232,8 @@ changelog entry.
 - Upgraded `rollup` from `^4.40.0` to `^4.60.3`
 - Converted `jest.config.ts` from CommonJS (`module.exports`) to ESM (`export default`)
 
+[3.1.2]: https://www.npmjs.com/package/@mdaemon/observable/v/3.1.2
+[3.1.1]: https://www.npmjs.com/package/@mdaemon/observable/v/3.1.1
 [3.1.0]: https://www.npmjs.com/package/@mdaemon/observable/v/3.1.0
 [3.0.2]: https://www.npmjs.com/package/@mdaemon/observable/v/3.0.2
 [3.0.1]: https://www.npmjs.com/package/@mdaemon/observable/v/3.0.1

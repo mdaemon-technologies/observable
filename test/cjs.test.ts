@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { createRequire } from "module";
 
 const _require = createRequire(import.meta.url);
@@ -27,15 +28,15 @@ describe("CJS format (dist/observable.cjs)", () => {
     expect(x()).toBe("world");
   });
 
-  it("notifies observers on change", (done) => {
+  it("notifies observers on change", () => {
     const x = observe("cjs-obs", 0) as Function;
+    const calls: Array<[number, number]> = [];
     const stop = x((newVal: number, oldVal: number) => {
-      expect(newVal).toBe(1);
-      expect(oldVal).toBe(0);
-      stop();
-      done();
+      calls.push([newVal, oldVal]);
     }) as Function;
     x(1);
+    stop();
+    expect(calls).toEqual([[1, 0]]);
   });
 
   it("does not notify observers when value is unchanged", () => {

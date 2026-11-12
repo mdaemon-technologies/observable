@@ -1,6 +1,6 @@
 {
   "name": "@mdaemon/observable",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "type": "module",
   "description": "A function for creating an observable object, array, boolean, string, or number.",
   "main": "dist/observable.umd.js",
@@ -12,11 +12,14 @@
     "access": "public"
   },
   "scripts": {
-    "test": "jest",
-    "test:dist": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.dist.ts",
-    "dev-test": "jest --watchAll",
-    "build": "rollup -c && tsc -p tsconfig.types.json",
-    "dev": "rollup -c -w",
+    "test": "vitest run",
+    "test:dist": "vitest run --config vitest.config.dist.ts",
+    "test:smoke": "node test/smoke.cjs",
+    "dev-test": "vitest",
+    "test:types": "node test/consumer-types.mjs",
+    "typecheck": "node node_modules/typescript/bin/tsc --noEmit -p tsconfig.json && node node_modules/typescript/bin/tsc --noEmit -p tsconfig.test.json",
+    "build": "vite build && node node_modules/typescript/bin/tsc -p tsconfig.types.json",
+    "dev": "vite build --watch",
     "pub": "npm run build && npm run test && npm run test:dist && npm publish"
   },
   "repository": {
@@ -45,19 +48,26 @@
   },
   "homepage": "https://github.com/mdaemon-technologies/observable#readme",
   "devDependencies": {
-    "@types/jest": "^30.0.0",
-    "jest": "^30.4.2",
-    "rollup": "^4.60.3",
-    "rollup-plugin-esbuild": "^6.2.1",
-    "ts-jest": "^29.4.10",
-    "ts-node": "^10.9.2",
-    "typescript": "^6.0.0"
+    "@types/node": "^22.20.5",
+    "@typescript/typescript6": "^6.0.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
   },
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/observable.mjs",
-      "require": "./dist/observable.cjs",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/observable.mjs"
+      },
+      "require": {
+        "types": "./dist/observable.d.cts",
+        "default": "./dist/observable.cjs"
+      },
       "browser": "./dist/observable.umd.js"
     }
   }

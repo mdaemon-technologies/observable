@@ -1,4 +1,5 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# Builds and tests on every Node version the dev tooling supports, then smoke-tests the
+# built bundles on the older runtimes that `engines` still promises.
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
 name: Node.js CI
@@ -9,6 +10,9 @@ on:
   pull_request:
     branches: [ "master" ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
 
@@ -16,8 +20,8 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x, 24.x, 26.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        # Vite 8 and Vitest 5 need Node 22.12+. Older runtimes are covered by `smoke` below.
+        node-version: [22.x, 24.x, 26.x]
 
     steps:
     - uses: actions/checkout@v7
@@ -27,5 +31,40 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm ci
-    - run: npm run build --if-present
+    - run: npm run typecheck
+    - run: npm run build
     - run: npm test
+    - run: npm run test:dist
+    - run: npm run test:smoke
+    - run: npm run test:types   # consumer type-checks: TS 7 and TS 6, every module resolution
+    - name: Upload the built bundles for the smoke matrix
+      if: matrix.node-version == '26.x'   # Active LTS; publish.yml builds on the same line
+      uses: actions/upload-artifact@v7
+      with:
+        name: dist
+        path: dist/
+        if-no-files-found: error
+        retention-days: 1
+
+  smoke:
+    # The built bundles on runtimes older than the dev tooling supports. No `npm ci`:
+    # test/smoke.cjs uses only Node built-ins, so this is what a consumer's Node 18 runs.
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - uses: actions/checkout@v7
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v7
+      with:
+        node-version: ${{ matrix.node-version }}
+    - uses: actions/download-artifact@v8
+      with:
+        name: dist
+        path: dist
+    - run: node test/smoke.cjs
