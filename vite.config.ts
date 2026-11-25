@@ -10,7 +10,7 @@ export default defineConfig({
   build: {
     target: "es2015",
     minify: true,
-    // dist/ also holds the hand-maintained index.d.ts and *.d.ts shims.
+    // dist/ also holds the declarations written by tsc and scripts/emit-cts.mjs.
     emptyOutDir: false,
     lib: {
       entry: "src/observable.ts",

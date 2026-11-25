@@ -4,8 +4,10 @@
 //
 //   npm run build && node test/consumer-types.mjs
 //
-// 1. Checks that the hand-maintained shims (dist/index.d.ts, dist/observable.d.cts)
-//    re-export exactly the types that the generated dist/observable.d.ts exports.
+// 1. Checks that the CommonJS entry (dist/observable.d.cts, written by
+//    scripts/emit-cts.mjs) re-exports exactly the types that dist/observable.d.ts
+//    exports, which catches a stale file or a broken generator. The ESM entry,
+//    dist/index.d.ts, is generated from src/index.ts with `export *`, so it cannot drift.
 // 2. Copies the files `npm pack` would publish into a temporary
 //    node_modules/@mdaemon/observable, next to the fixtures in test/consumer/.
 // 3. Type-checks the fixtures under each supported module resolution mode, with
@@ -47,7 +49,7 @@ const fail = (message) => {
   console.error(`not ok - ${message}`);
 };
 
-// 1. The shims must re-export every generated type, and nothing else.
+// 1. The CommonJS entry must re-export every generated type, and nothing else.
 const read = (file) => fs.readFileSync(path.join(root, "dist", file), "utf8");
 const listed = (source) => {
   const match = source.match(/export type \{([^}]*)\}/);
@@ -55,7 +57,6 @@ const listed = (source) => {
 };
 const generated = listed(read("observable.d.ts"));
 const shims = {
-  "dist/index.d.ts": listed(read("index.d.ts")),
   "dist/observable.d.cts": [...read("observable.d.cts").matchAll(/^\s*type (\w+) = types\.\1;/gm)]
     .map((match) => match[1])
     .sort(),

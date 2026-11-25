@@ -1,6 +1,6 @@
 {
   "name": "@mdaemon/observable",
-  "version": "3.1.2",
+  "version": "3.1.3",
   "type": "module",
   "description": "A function for creating an observable object, array, boolean, string, or number.",
   "main": "dist/observable.umd.js",
@@ -18,7 +18,7 @@
     "dev-test": "vitest",
     "test:types": "node test/consumer-types.mjs",
     "typecheck": "node node_modules/typescript/bin/tsc --noEmit -p tsconfig.json && node node_modules/typescript/bin/tsc --noEmit -p tsconfig.test.json",
-    "build": "vite build && node node_modules/typescript/bin/tsc -p tsconfig.types.json",
+    "build": "vite build && node node_modules/typescript/bin/tsc -p tsconfig.types.json && node scripts/emit-cts.mjs",
     "dev": "vite build --watch",
     "pub": "npm run build && npm run test && npm run test:dist && npm publish"
   },

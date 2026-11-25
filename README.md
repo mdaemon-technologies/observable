@@ -311,11 +311,15 @@ later.
 npm install
 npm run typecheck    # type-check the source, tests, and build configs
 npm test             # unit tests and the README examples (Vitest)
-npm run build        # ESM, CJS, and UMD bundles (Vite) and type declarations (tsc)
+npm run build        # ESM, CJS, and UMD bundles (Vite) and every type declaration in dist/
 npm run test:dist    # test the built bundles in dist/
 npm run test:smoke   # smoke-test dist/ on plain Node.js, no dependencies needed
 npm run test:types   # type-check ESM and CommonJS consumers on TypeScript 7 and 6
 ```
+
+All type declarations are generated: `tsc` emits `observable.d.ts` and `index.d.ts`
+from `src/`, and `scripts/emit-cts.mjs` writes the CommonJS `observable.d.cts` from
+`tsc`'s output. Don't edit them in `dist/`; the next build overwrites them.
 
 The build uses TypeScript 7. Run it through the npm scripts rather than `npx tsc`:
 TypeScript 6 is also installed for the `node10` consumer check and may own the bare
