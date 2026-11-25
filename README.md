@@ -8,7 +8,7 @@
 
 A function for creating an observable object, array, boolean, string, or number.
 
-The `observable` function provides methods for setting, getting, observing, and stopping observation of any of the following value types: `object`, `array`, `boolean`, `string`, and `number`.
+The default export, `observe`, creates (or looks up) a named observable and returns an accessor function for getting, setting, and observing its value, and for stopping observation. Supported value types are `object`, `array`, `boolean`, `string`, and `number`.
 
 ## Install
 
@@ -30,8 +30,8 @@ import observe from "@mdaemon/observable";
 const observe = require("@mdaemon/observable");
 ```
 
-> **Note:** Bundlers (Rollup, webpack, Vite, etc.) and Node.js resolve the `exports` field in
-> `package.json` and will use the appropriate build automatically.
+> **Note:** Node.js and your bundler (Vite, webpack, esbuild, Rollup, etc.) resolve the
+> `exports` field in `package.json` and pick the matching build automatically.
 
 ### Browser (UMD)
 ```html
@@ -77,9 +77,9 @@ import type { Unsubscribe } from "@mdaemon/observable";
 You can use observe to keep track of a value from multiple contexts
 ### Export observables
 ```js
+// observeTheseValues.js
 import observe from "@mdaemon/observable";
 
-// observeTheseValues.js
 const observedNumber = observe("numberName", 20);
 export { observedNumber };
 
@@ -105,7 +105,7 @@ import {
     observedNumber, observedObject, 
     observedArray, observedBoolean, 
     observedString 
-} from "observeTheseValues.js";
+} from "./observeTheseValues.js";
 
 // change the value and return changed true/false
 let changed = observedNumber(30);
@@ -140,13 +140,17 @@ const stopObservingObject = observedObject((newValue, oldValue) => {
   console.log("new", newValue);
 });
 
-console.log(observedObject({ test: 10 })); // true
-// { test: 10 }
+// observers run synchronously, before the write returns
+console.log(observedObject({ test: 10 }));
+// new { test: 10 }
+// true
 
 // to remove a property from an object, set it to undefined
 // (the key is deleted, not left behind holding undefined)
 observedObject({ test: undefined });
-// { }
+// new { }
+
+stopObservingObject();
 
 // from 2.0 you can also get an already observed value using the name of the value passed to the original
 
@@ -276,12 +280,13 @@ strings, numbers, plain objects, and arrays round-trip intact; a `Date`, `Map`,
 You can destroy an observable instance by passing a special string to the observe function. This will remove the observable from the internal list, allowing it to be garbage collected if there are no other references to it.
 
 ```js
+const str = observe("stringName", "test");
+
 // Destroy the observable instance
 str("destroy-observable-stringName");
 
-// Attempting to get the value of the destroyed observable will now return undefined
-const str = observe("stringName");
-console.log(str()); // undefined
+// The name is free again: looking it up creates a new, empty observable
+console.log(observe("stringName")()); // undefined
 ```
 
 Destroying drops every registered observer, and any handle still held by a caller
